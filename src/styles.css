@@ -1,0 +1,1274 @@
+:root {
+  --panel-w: 360px;
+  --accent: #2e86ff;
+  --text: #111827;
+  /* 折叠：保留手柄 + 可选顶栏 + 一截可滚动内容（与二级「露图」尺度接近） */
+  --panel-collapsed-max-h: min(42vh, 400px);
+  /* 全站 UI：现代无衬线 + 中文系统字体栈（PingFang / 微软雅黑 / Noto 等） */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei",
+    "Noto Sans SC", "Source Han Sans SC", sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: #f5f6f8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+}
+
+.page {
+  height: 100vh;
+}
+
+/* 相册 / 地图：仅分段为小磨砂胶囊，无外层轨道 */
+.viewModeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.viewModeToggle__seg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(12px) saturate(1.35);
+  -webkit-backdrop-filter: blur(12px) saturate(1.35);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  white-space: nowrap;
+}
+
+.viewModeToggle__seg:hover:not(.viewModeToggle__seg--active) {
+  color: #334155;
+  background: rgba(255, 255, 255, 0.58);
+  border-color: rgba(255, 255, 255, 0.72);
+}
+
+.viewModeToggle__seg--active {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 3px 10px rgba(15, 23, 42, 0.08);
+}
+
+.viewModeToggle__seg--active svg {
+  color: currentColor;
+  opacity: 0.9;
+}
+
+.viewModeToggle__seg svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: currentColor;
+  opacity: 0.88;
+}
+
+/* 地图页：右上角（模式切换 + 缩放） */
+.mapTopRightStack {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.mapZoomControls {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.12);
+  border: 1px solid #e5e7eb;
+}
+
+.mapZoomBtn {
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: #ffffff;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.mapZoomBtn:hover {
+  background: #f3f4f6;
+}
+
+.mapZoomBtn:active {
+  background: #e5e7eb;
+}
+
+.mapZoomBtn + .mapZoomBtn {
+  border-top: 1px solid #e5e7eb;
+}
+
+/* 地图：鼠标跟随框选圆（不拦截指针事件） */
+.mapBrushCircle {
+  pointer-events: none;
+  border-radius: 50%;
+  border: 2px solid rgba(46, 134, 255, 0.72);
+  background: rgba(46, 134, 255, 0.12);
+  box-sizing: border-box;
+}
+
+/* 已铆钉选区后：跟随鼠标的预览圆改为灰调，与地图上的蓝色锚定圈区分 */
+.mapBrushCircle--followGray {
+  border-color: rgba(100, 116, 139, 0.55);
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.mapBrushHint {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+/* 相册页：整体浅灰底 + 顶栏双态（展开 / 滚动紧凑）+ 手机顶栏与底部 Dock */
+.albumPage {
+  min-height: 100vh;
+  background: #f3f4f6;
+  --album-header-offset: 134px;
+  --album-content-pad-bottom: 40px;
+}
+
+.albumPage--scrolled:not(.albumPage--mobile) {
+  --album-header-offset: 68px;
+}
+
+.albumPage--mobile {
+  --album-header-offset: 148px;
+  --album-content-pad-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+}
+
+.albumPage--mobile.albumPage--mobileCompact {
+  --album-header-offset: 64px;
+}
+
+.albumLayoutInner {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(20px, 5vw, 56px);
+  padding-right: clamp(20px, 5vw, 56px);
+  box-sizing: border-box;
+}
+
+.albumTopBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(1.45);
+  -webkit-backdrop-filter: blur(20px) saturate(1.45);
+  border-bottom: none;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.78) inset,
+    0 12px 40px rgba(15, 23, 42, 0.05);
+  transition: box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.albumPage--scrolled:not(.albumPage--mobile) .albumTopBar {
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.65) inset,
+    0 10px 36px rgba(15, 23, 42, 0.07);
+}
+
+.albumHeaderTier--brand {
+  border-bottom: none;
+}
+
+.albumHeaderTierInner--brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 30px;
+  padding-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.albumHeaderTierInner--nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  padding-top: 2px;
+  padding-bottom: 14px;
+  flex-wrap: wrap;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.albumPage--scrolled:not(.albumPage--mobile) .albumHeaderTierInner--nav {
+  justify-content: space-between;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  align-items: center;
+}
+
+.albumBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #0f172a;
+  transition: opacity 0.2s ease;
+}
+
+.albumBrand:hover {
+  opacity: 0.88;
+}
+
+.albumBrand:hover .albumBrandWordmark {
+  color: #020617;
+}
+
+.albumBrand--mobile {
+  justify-content: center;
+}
+
+.albumBrandAperture {
+  flex-shrink: 0;
+  color: #111827;
+}
+
+.albumBrandWordmark {
+  font-family: Georgia, "Times New Roman", ui-serif, serif;
+  font-size: clamp(11px, 1.5vw, 14px);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.albumHeaderBrandRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px 20px;
+  flex-wrap: wrap;
+}
+
+.albumContactLink {
+  position: relative;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #475569;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 4px 0;
+  transition: color 0.22s ease;
+}
+
+.albumContactLink::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, var(--accent), rgba(46, 134, 255, 0.15));
+  opacity: 0;
+  transform: scaleX(0.35);
+  transform-origin: left center;
+  transition:
+    opacity 0.22s ease,
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.albumContactLink:hover {
+  color: #0f172a;
+}
+
+.albumContactLink:hover::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.albumHeaderNavRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* 手机顶栏：居中品牌 + 横向滚动分类（无层间分割线） */
+.albumTopBar--mobile {
+  border-bottom: none;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 10px 36px rgba(15, 23, 42, 0.06);
+}
+
+.albumMobileHeaderInner {
+  padding-top: 14px;
+  padding-bottom: 10px;
+}
+
+.albumMobileBrandBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 4px;
+  padding-bottom: 12px;
+}
+
+.albumMobileTabsWrap {
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: none;
+}
+
+.albumMobileTabsWrap--tabsOnly {
+  margin-top: 0;
+  padding-top: 12px;
+}
+
+.albumMobileTabsWrap .albumNavTabs {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  gap: 14px 18px;
+  padding-bottom: 4px;
+}
+
+.albumMobileTabsWrap .albumNavTabs::-webkit-scrollbar {
+  display: none;
+}
+
+.albumMobileDock {
+  position: fixed;
+  left: 50%;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 8px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.52);
+  backdrop-filter: blur(22px) saturate(1.4);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 10px 36px rgba(15, 23, 42, 0.14), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+.albumMobileDock .viewModeToggle {
+  gap: 6px;
+}
+
+.albumMobileDockContact {
+  padding-right: 4px;
+}
+
+.albumNavTabs {
+  display: flex;
+  align-items: center;
+  gap: 8px 20px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.albumNavTab {
+  border: none;
+  background: none;
+  padding: 7px 10px;
+  margin: 0 -6px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #94a3b8;
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: 8px;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    font-weight 0.15s ease;
+}
+
+.albumNavTab:hover:not(.albumNavTab--active) {
+  color: #475569;
+  background: rgba(15, 23, 42, 0.045);
+}
+
+.albumNavTab--active {
+  color: #0f172a;
+  font-weight: 700;
+  background: transparent;
+}
+
+.albumContentWrap {
+  padding-top: var(--album-header-offset);
+  padding-bottom: var(--album-content-pad-bottom);
+  transition: padding-top 0.2s ease;
+}
+
+.albumMainInner {
+  padding-top: clamp(16px, 2.5vw, 24px);
+  padding-bottom: 8px;
+}
+
+.albumMainInner .waterfallWrap {
+  padding: 0;
+}
+
+/* 联系作者页 */
+.contactPage {
+  min-height: 100vh;
+  background: #f3f4f6;
+}
+
+.contactPageHeader {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.contactPageHeaderInner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 14px clamp(20px, 5vw, 40px);
+}
+
+.contactPageBack {
+  position: relative;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #475569;
+  text-decoration: none;
+  padding: 4px 0;
+  transition: color 0.22s ease;
+}
+
+.contactPageBack::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), rgba(46, 134, 255, 0.15));
+  opacity: 0;
+  transform: scaleX(0.35);
+  transform-origin: left center;
+  transition:
+    opacity 0.22s ease,
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.contactPageBack:hover {
+  color: #0f172a;
+}
+
+.contactPageBack:hover::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.contactPageMain {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(28px, 6vw, 48px) clamp(20px, 5vw, 40px) 64px;
+}
+
+.contactPageTitle {
+  margin: 0 0 16px;
+  font-size: clamp(24px, 4vw, 30px);
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 0.02em;
+}
+
+.contactPageLead {
+  margin: 0 0 20px;
+  font-size: 17px;
+  line-height: 1.65;
+  color: #374151;
+}
+
+.contactPageP {
+  margin: 0 0 16px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #4b5563;
+}
+
+/* 展开：左侧全高悬浮栏（固定宽、顶底留边）— 与最早版本一致 */
+/* 折叠：才变为左下角「上下收起」的抽屉，并保留手柄 + 一截内容 */
+.leftPanel {
+  position: absolute;
+  left: 16px;
+  width: var(--panel-w);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition:
+    max-height 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.28s ease,
+    box-shadow 0.28s ease,
+    background 0.25s ease;
+}
+
+.leftPanel:not(.leftPanel--collapsed) {
+  top: 16px;
+  bottom: 16px;
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.1), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+
+.leftPanel.leftPanel--collapsed {
+  top: auto;
+  bottom: 16px;
+  max-height: var(--panel-collapsed-max-h);
+  border-radius: 18px 18px 14px 14px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12), 0 1px 0 rgba(255, 255, 255, 0.45) inset;
+}
+
+/* 顶部折叠条：参考图中央小 chevron */
+.leftPanelFoldBtn {
+  flex-shrink: 0;
+  width: 100%;
+  border: none;
+  background: rgba(255, 255, 255, 0.35);
+  padding: 8px 10px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  color: #64748b;
+}
+
+.leftPanelFoldBtn:hover {
+  background: rgba(255, 255, 255, 0.55);
+  color: #0f172a;
+}
+
+.leftPanelFoldIcon {
+  display: inline-flex;
+  line-height: 0;
+  transition: transform 0.25s ease;
+}
+
+.leftPanel--collapsed .leftPanelFoldIcon {
+  transform: rotate(180deg);
+}
+
+.leftPanelMain {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.leftPanel--collapsed .leftPanelMain {
+  min-height: 0;
+  flex: 1;
+}
+
+/* 折叠时仍露出一截相册 / 卡片，可滚动浏览（不再压成一条缝） */
+.leftPanel--collapsed .leftPanelBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  pointer-events: auto;
+}
+
+.leftPanel:not(.leftPanel--collapsed) .leftPanelBody {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+  pointer-events: auto;
+}
+
+.leftPanelHeader {
+  flex-shrink: 0;
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.backBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.45);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: #334155;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.backBtn:hover {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(46, 134, 255, 0.28);
+  color: var(--accent);
+}
+
+.backBtn svg {
+  display: block;
+}
+
+.leftPanelTitle {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leftPanelBody {
+  overflow: auto;
+  padding: 12px;
+}
+
+/* 地图侧栏 · 一级：分类标题 + 地点卡片双列（合并原一、二级） */
+.mapNavRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mapNavSection {
+  padding-bottom: 4px;
+}
+
+.mapNavSectionTitle {
+  margin: 0 0 14px;
+  padding: 12px 2px 4px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 0.02em;
+  font-family: var(--font-sans);
+}
+
+/* 地图侧栏 · 二级目录：地点卡片（双列、底部地名） */
+.placeCardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.placeCard {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  aspect-ratio: 1 / 1;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.placeCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
+}
+
+.placeCard:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.placeCardImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.placeCardShade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.15) 42%, transparent 72%);
+  pointer-events: none;
+}
+
+.placeCardName {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 18px 10px 16px;
+  text-align: center;
+  color: #ffffff;
+  font-size: 19px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  letter-spacing: 0.06em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  line-height: 1.35;
+}
+
+/* 地图侧栏相册：密铺方格墙，细白缝、直角（参考常见相册墙） */
+.thumbGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+
+.thumbItem {
+  cursor: pointer;
+}
+
+.thumbFrame {
+  border-radius: 0;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  background: #ffffff;
+}
+
+.thumbItem.active .thumbFrame {
+  border-color: var(--accent);
+  border-width: 2px;
+}
+
+.thumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tileGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.categoryTile {
+  cursor: pointer;
+}
+
+.categoryCard {
+  background: #f9fafb;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #eef2f7;
+}
+
+.categoryCover {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+
+.categoryName {
+  padding: 10px 10px 12px;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: left;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 50;
+}
+
+/* 网页端大图：舞台铺满视口 */
+.modalStage {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 大图模式：右上角退出 */
+.modalExitBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 8;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s ease;
+}
+
+.modalExitBtn:hover {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+/* 主图区：左右翻页 + 可点击显隐参数 */
+.modalImageArea {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  width: 100%;
+}
+
+.modalNavBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 6;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111827;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 300;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  transition:
+    background 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.modalNavBtn:hover:not(:disabled) {
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+}
+
+.modalNavBtn:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
+
+.modalNavBtn--prev {
+  left: 12px;
+}
+
+.modalNavBtn--next {
+  right: 12px;
+}
+
+.modalImageWrap--clickable {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+.modalImageWrap--clickable:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+}
+
+.modalImageInner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.modalImageInner--enterNext {
+  animation: modalPhotoEnterNext 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.modalImageInner--enterPrev {
+  animation: modalPhotoEnterPrev 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes modalPhotoEnterNext {
+  from {
+    opacity: 0;
+    transform: translateX(36px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes modalPhotoEnterPrev {
+  from {
+    opacity: 0;
+    transform: translateX(-36px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.waterfall {
+  column-count: 3;
+  column-gap: 16px;
+}
+
+.waterfallItem {
+  position: relative;
+  break-inside: avoid;
+  margin-bottom: 16px;
+  cursor: pointer;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f3f4f6;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  transition:
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.32s ease;
+  will-change: transform;
+}
+
+@media (hover: hover) {
+  .waterfallItem:hover {
+    transform: translateY(-6px) scale(1.022);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.11);
+    z-index: 2;
+  }
+}
+
+.waterfallImg {
+  width: 100%;
+  display: block;
+  height: auto;
+}
+
+.waterfallItem.active {
+  outline: 3px solid var(--accent);
+}
+
+.waterfallWrap {
+  padding: 16px;
+}
+
+.modalImageWrap {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.modalImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: transparent;
+}
+
+.paramPanel {
+  position: absolute;
+  left: 18px;
+  top: 56px;
+  width: 440px;
+  max-width: calc(100% - 36px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+  z-index: 7;
+}
+
+.paramPanelHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.paramTabs {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
+}
+
+.paramPanelCloseBtn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(0, 0, 0, 0.06);
+  color: #374151;
+  font-size: 16px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s ease;
+}
+
+.paramPanelCloseBtn:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.paramTabBtn {
+  border: none;
+  background: transparent;
+  font-weight: 700;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.paramTabBtn.active {
+  color: #111827;
+  background: rgba(46, 134, 255, 0.12);
+}
+
+.closeBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.paramPanelBody {
+  padding: 14px;
+}
+
+.paramBasicBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.paramGridBasic {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* 基本参数 · 描述：整行占满（等同两格宽度） */
+.paramCard--span2 {
+  width: 100%;
+}
+
+/* 基本参数 · 拍摄时间：整行两格宽，高度约为普通卡片一半 */
+.paramCard--timeHalf {
+  padding-top: 6px;
+  padding-bottom: 8px;
+}
+
+.paramCard--timeHalf .paramLabel {
+  margin-bottom: 4px;
+}
+
+.paramTimeRelative {
+  font-size: 17px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1.25;
+}
+
+.paramTimeAbsolute {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  line-height: 1.35;
+}
+
+.paramValue--description {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.paramGridGeo {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.paramCard {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(17, 24, 39, 0.06);
+}
+
+.paramValue {
+  font-size: 18px;
+  font-weight: 800;
+  text-align: left;
+}
+
+.paramLabel {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+@media (max-width: 820px) {
+  :root {
+    --panel-w: 100vw;
+    --panel-collapsed-max-h: min(38vh, 360px);
+  }
+  /* 移动端展开：底部抽屉（高版）；折叠：同样保留一条手柄区 */
+  .leftPanel:not(.leftPanel--collapsed) {
+    top: auto;
+    left: 0;
+    bottom: 0;
+    width: 100vw;
+    max-height: min(56vh, calc(100vh - 24px));
+    border-radius: 20px 20px 0 0;
+  }
+
+  .leftPanel.leftPanel--collapsed {
+    left: 0;
+    width: 100vw;
+    bottom: 0;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .thumbGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .waterfall {
+    column-count: 2;
+  }
+
+  /* 大图预览：整块在屏幕垂直居中（不再贴底） */
+  .modalOverlay {
+    align-items: center;
+    justify-content: center;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    box-sizing: border-box;
+  }
+  .modalStage {
+    position: relative;
+    inset: auto;
+    height: 72vh;
+    width: 100vw;
+    border-radius: 0;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  }
+  .modalExitBtn {
+    top: max(10px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+  }
+  .modalNavBtn {
+    display: none;
+  }
+  .modalImageWrap {
+    border-radius: 0;
+  }
+  /* 大图左右滑动切图：减少浏览器抢走横向手势 */
+  .modalImageWrap--mobileSwipe {
+    touch-action: pan-y;
+  }
+  .paramPanel {
+    left: 12px;
+    top: 52px;
+    width: calc(100% - 24px);
+  }
+}
+
