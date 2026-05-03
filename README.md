@@ -33,6 +33,11 @@ Browsers display whatever they can decode in `<img>`. These usually work well fr
 
 Put converted files under `public/photos/` and point `src` in `photos.json` at `/photos/yourfile.webp` (etc.).
 
-## Data
+## Data & 桌面工具
 
-Edit `public/photos/photos.json` to add your own photos.
+- 维护相册、合并写入 `public/photos/photos.json`：用仓库根目录的 **`Start-Maptool.bat`** 启动 **maptool**（详见 **`docs/相册站点维护说明.md`**）。
+- 若需 **Git 提交与 GitHub 发布** 的流程说明，也在同一份文档中。
+
+## Data (manual)
+
+You can also edit `public/photos/photos.json` by hand to add your own photos.
