@@ -189,12 +189,13 @@ a {
 }
 
 .albumPage--mobile {
-  --album-header-offset: 148px;
+  /* 顶栏竖向收紧为约 2/3，与下方 padding 联动 */
+  --album-header-offset: calc(148px * 2 / 3);
   --album-content-pad-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
 }
 
 .albumPage--mobile.albumPage--mobileCompact {
-  --album-header-offset: 64px;
+  --album-header-offset: calc(64px * 2 / 3);
 }
 
 .albumLayoutInner {
@@ -392,6 +393,45 @@ a {
   scrollbar-width: none;
   gap: 14px 18px;
   padding-bottom: 4px;
+}
+
+/* 手机端：顶栏高度约为原来的 2/3（竖向留白同比缩小），分类按钮仍 flex 上下居中 */
+.albumPage--mobile .albumMobileHeaderInner {
+  padding-top: calc(14px * 2 / 3);
+  padding-bottom: calc(10px * 2 / 3);
+}
+
+.albumPage--mobile .albumMobileBrandBlock {
+  padding-top: calc(4px * 2 / 3);
+  padding-bottom: calc(12px * 2 / 3);
+}
+
+.albumPage--mobile .albumMobileTabsWrap {
+  margin-top: calc(4px * 2 / 3);
+  padding-top: calc(14px * 2 / 3);
+}
+
+.albumPage--mobile .albumMobileTabsWrap--tabsOnly {
+  padding-top: calc(12px * 2 / 3);
+}
+
+.albumPage--mobile .albumMobileTabsWrap .albumNavTabs {
+  gap: calc(14px * 2 / 3) calc(18px * 2 / 3);
+  padding-bottom: calc(4px * 2 / 3);
+  align-items: center;
+}
+
+.albumPage--mobile .albumNavTab {
+  padding: calc(7px * 2 / 3) 10px;
+}
+
+/* 手机端：瀑布流间距缩小为原来的 1/5（缩小五分之四） */
+.albumPage--mobile .waterfall {
+  column-gap: calc(16px / 5);
+}
+
+.albumPage--mobile .waterfallItem {
+  margin-bottom: calc(16px / 5);
 }
 
 .albumMobileTabsWrap .albumNavTabs::-webkit-scrollbar {
