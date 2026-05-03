@@ -7,7 +7,9 @@ export type { CategoryDefinition };
  * 拉取网站工程 `public/photos/categories.json`（由相册清单工具写入）。
  * 缺失或非数组时不抛错，返回空数组，由页面层用内置默认名兜底。
  */
-export default function useCategories(url = "/photos/categories.json") {
+const defaultCategoriesUrl = `${import.meta.env.BASE_URL}photos/categories.json`;
+
+export default function useCategories(url = defaultCategoriesUrl) {
   const [categories, setCategories] = useState<CategoryDefinition[]>([]);
 
   useEffect(() => {

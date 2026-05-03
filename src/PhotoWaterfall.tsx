@@ -1,5 +1,6 @@
 import React from "react";
 import type { Photo } from "./photoUtils";
+import { publicUrl } from "./publicUrl";
 
 export default function PhotoWaterfall({
   photos,
@@ -23,7 +24,7 @@ export default function PhotoWaterfall({
               role="button"
               tabIndex={0}
             >
-              <img className="waterfallImg" src={p.src} alt="" loading="lazy" />
+              <img className="waterfallImg" src={publicUrl(p.src)} alt="" loading="lazy" />
             </div>
           );
         })}

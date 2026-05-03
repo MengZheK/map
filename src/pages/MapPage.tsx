@@ -23,6 +23,7 @@ import {
 } from "../photoUtils";
 import PhotoThumbGrid from "../PhotoThumbGrid";
 import PhotoDetailModal from "../PhotoDetailModal";
+import { publicUrl } from "../publicUrl";
 import ViewModeToggle from "../ViewModeToggle";
 import { getRasterBasemapStyle } from "../mapBasemapStyle";
 import { useVisitorLocation, useVisitorLocationRefresh } from "../VisitorLocation";
@@ -120,8 +121,8 @@ function buildCityGroupsForCategory(photos: Photo[], categoryId: string): CityGr
 }
 
 export default function MapPage() {
-  const { photos, loading, error } = usePhotos("/photos/photos.json");
-  const { categories: categoryDefs } = useCategories("/photos/categories.json");
+  const { photos, loading, error } = usePhotos();
+  const { categories: categoryDefs } = useCategories();
   const visitorLoc = useVisitorLocation();
   const refreshVisitorLocation = useVisitorLocationRefresh();
   const visitorLocRef = useRef(visitorLoc);
@@ -766,7 +767,7 @@ export default function MapPage() {
                                 tabIndex={0}
                                 title={g.label}
                               >
-                                <img className="placeCardImg" src={g.cover.src} alt="" loading="lazy" />
+                                <img className="placeCardImg" src={publicUrl(g.cover.src)} alt="" loading="lazy" />
                                 <div className="placeCardShade" aria-hidden />
                                 <div className="placeCardName">{g.label}</div>
                               </div>

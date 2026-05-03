@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import type { Photo } from "./photoUtils";
 
-export default function usePhotos(url = "/photos/photos.json") {
+const defaultPhotosUrl = `${import.meta.env.BASE_URL}photos/photos.json`;
+
+export default function usePhotos(url = defaultPhotosUrl) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

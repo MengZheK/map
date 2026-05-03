@@ -136,7 +136,7 @@ function AlbumContactLink({ className }: { className?: string }) {
 }
 
 export default function AlbumPage() {
-  const { photos, loading, error } = usePhotos("/photos/photos.json");
+  const { photos, loading, error } = usePhotos();
   const [activeNav, setActiveNav] = useState<AlbumNavId>("featured");
   const [activePhotoId, setActivePhotoId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);

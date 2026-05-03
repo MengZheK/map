@@ -1,5 +1,6 @@
 import React from "react";
 import type { Photo } from "./photoUtils";
+import { publicUrl } from "./publicUrl";
 
 export default function PhotoThumbGrid({
   photos,
@@ -23,7 +24,7 @@ export default function PhotoThumbGrid({
             tabIndex={0}
           >
             <div className="thumbFrame">
-              <img className="thumbImg" src={p.src} alt="" loading="lazy" />
+              <img className="thumbImg" src={publicUrl(p.src)} alt="" loading="lazy" />
             </div>
           </div>
         );

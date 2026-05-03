@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Photo } from "./photoUtils";
+import { publicUrl } from "./publicUrl";
 import useCategories from "./useCategories";
 import { categoryTitleForId } from "./categoryLabels";
 import {
@@ -40,7 +41,7 @@ export default function PhotoDetailModal({
     [photos, activePhotoId],
   );
 
-  const { categories: categoryDefs } = useCategories("/photos/categories.json");
+  const { categories: categoryDefs } = useCategories();
   const [tab, setTab] = useState<"basic" | "geo">("basic");
   /** 参数悬浮框默认隐藏，点击大图才显示 */
   const [showParamPanel, setShowParamPanel] = useState(false);
@@ -250,7 +251,7 @@ export default function PhotoDetailModal({
             >
               <img
                 className="modalImage"
-                src={photo.src}
+                src={publicUrl(photo.src)}
                 alt=""
                 loading="lazy"
                 decoding="async"
