@@ -1267,8 +1267,28 @@ a {
   }
   .paramPanel {
     left: 12px;
+    right: 12px;
     top: 52px;
-    width: calc(100% - 24px);
+    width: auto;
+    max-width: none;
+    /* 限制在舞台内高度，避免底部「拍摄于 / 描述」被裁切 */
+    bottom: max(12px, env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .paramPanelHeader {
+    flex-shrink: 0;
+  }
+
+  .paramPanelBody {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-bottom: max(14px, calc(8px + env(safe-area-inset-bottom, 0px)));
   }
 }
 
