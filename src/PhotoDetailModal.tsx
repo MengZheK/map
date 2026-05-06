@@ -46,6 +46,10 @@ export default function PhotoDetailModal({
   /** 参数悬浮框默认隐藏，点击大图才显示 */
   const [showParamPanel, setShowParamPanel] = useState(false);
 
+  const paramPanelBodyRef = useRef<HTMLDivElement>(null);
+  const basicScrollTargetRef = useRef<HTMLDivElement>(null);
+  const geoScrollTargetRef = useRef<HTMLDivElement>(null);
+
   const index = useMemo(() => photos.findIndex((p) => p.id === activePhotoId), [photos, activePhotoId]);
   const hasPrev = index > 0;
   const hasNext = index >= 0 && index < photos.length - 1;
@@ -133,6 +137,7 @@ export default function PhotoDetailModal({
 
   useEffect(() => {
     setShowParamPanel(false);
+    setTab("basic");
   }, [activePhotoId]);
 
   useEffect(() => {
@@ -188,6 +193,33 @@ export default function PhotoDetailModal({
           ],
     [photo],
   );
+
+  const scrollPanelChildIntoView = useCallback((el: HTMLElement | null) => {
+    if (!el) return;
+    const root = paramPanelBodyRef.current;
+    const marginTop = 10;
+    if (!root) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    const pad =
+      typeof window !== "undefined"
+        ? parseFloat(getComputedStyle(root).paddingTop || "0") || 0
+        : 0;
+    const delta = el.getBoundingClientRect().top - root.getBoundingClientRect().top;
+    const top = root.scrollTop + delta - pad - marginTop;
+    root.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  }, []);
+
+  const onTabBasic = useCallback(() => {
+    setTab("basic");
+    window.requestAnimationFrame(() => scrollPanelChildIntoView(basicScrollTargetRef.current));
+  }, [scrollPanelChildIntoView]);
+
+  const onTabGeo = useCallback(() => {
+    setTab("geo");
+    window.requestAnimationFrame(() => scrollPanelChildIntoView(geoScrollTargetRef.current));
+  }, [scrollPanelChildIntoView]);
 
   if (!photo) return null;
 
@@ -277,14 +309,14 @@ export default function PhotoDetailModal({
                 <button
                   type="button"
                   className={"paramTabBtn " + (tab === "basic" ? "active" : "")}
-                  onClick={() => setTab("basic")}
+                  onClick={onTabBasic}
                 >
                   基本参数
                 </button>
                 <button
                   type="button"
                   className={"paramTabBtn " + (tab === "geo" ? "active" : "")}
-                  onClick={() => setTab("geo")}
+                  onClick={onTabGeo}
                 >
                   地理位置
                 </button>
@@ -298,9 +330,9 @@ export default function PhotoDetailModal({
                 ✕
               </button>
             </div>
-            <div className="paramPanelBody">
-              {tab === "basic" ? (
-                <div className="paramBasicBlock">
+            <div ref={paramPanelBodyRef} className="paramPanelBody">
+              <div className="paramBasicBlock">
+                <div ref={basicScrollTargetRef}>
                   <div className="paramGridBasic">
                     {basicItems.map((it) => (
                       <div
@@ -312,34 +344,35 @@ export default function PhotoDetailModal({
                       </div>
                     ))}
                   </div>
-                  <div className="paramCard paramCard--span2 paramCard--timeHalf">
-                    <div className="paramLabel">拍摄于</div>
-                    {takenDateParsed ? (
-                      <>
-                        <div className="paramTimeRelative">{formatTakenRelativeChinese(takenDateParsed)}</div>
-                        <div className="paramTimeAbsolute">{formatTakenDateChinese(takenDateParsed)}</div>
-                      </>
-                    ) : (
-                      <div className="paramTimeRelative">-</div>
-                    )}
-                  </div>
-                  <div className="paramCard paramCard--span2">
-                    <div className="paramLabel">描述</div>
-                    <div className="paramValue paramValue--description">
-                      {displayValue(photo.description)}
-                    </div>
+                </div>
+                <div className="paramCard paramCard--span2 paramCard--timeHalf">
+                  <div className="paramLabel">拍摄于</div>
+                  {takenDateParsed ? (
+                    <>
+                      <div className="paramTimeRelative">{formatTakenRelativeChinese(takenDateParsed)}</div>
+                      <div className="paramTimeAbsolute">{formatTakenDateChinese(takenDateParsed)}</div>
+                    </>
+                  ) : (
+                    <div className="paramTimeRelative">-</div>
+                  )}
+                </div>
+                <div ref={geoScrollTargetRef}>
+                  <div className="paramGridGeo">
+                    {geoItems.map((it) => (
+                      <div key={it.label} className="paramCard">
+                        <div className="paramLabel">{it.label}</div>
+                        <div className="paramValue">{it.value}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ) : (
-                <div className="paramGridGeo">
-                  {geoItems.map((it) => (
-                    <div key={it.label} className="paramCard">
-                      <div className="paramLabel">{it.label}</div>
-                      <div className="paramValue">{it.value}</div>
-                    </div>
-                  ))}
+                <div className="paramCard paramCard--span2">
+                  <div className="paramLabel">描述</div>
+                  <div className="paramValue paramValue--description">
+                    {displayValue(photo.description)}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         ) : null}
