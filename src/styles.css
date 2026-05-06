@@ -1097,15 +1097,20 @@ a {
   top: 56px;
   width: 440px;
   max-width: calc(100% - 36px);
+  /* 网页端：限制在视口内，正文区域滚动，避免长描述 / 多字段时底部被裁切 */
+  max-height: calc(100dvh - 56px - 18px);
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
   border-radius: 18px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
   z-index: 7;
 }
 
 .paramPanelHeader {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1167,7 +1172,12 @@ a {
 }
 
 .paramPanelBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 14px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .paramBasicBlock {
