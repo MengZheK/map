@@ -303,7 +303,10 @@ export default function PhotoDetailModal({
                 <div className="paramBasicBlock">
                   <div className="paramGridBasic">
                     {basicItems.map((it) => (
-                      <div key={it.label} className="paramCard">
+                      <div
+                        key={it.label}
+                        className={"paramCard" + (it.label === "镜头" ? " paramCard--span2" : "")}
+                      >
                         <div className="paramLabel">{it.label}</div>
                         <div className="paramValue">{it.value}</div>
                       </div>

@@ -1197,6 +1197,11 @@ a {
   width: 100%;
 }
 
+/* 基本参数网格内：整行占两列（镜头等） */
+.paramGridBasic > .paramCard--span2 {
+  grid-column: 1 / -1;
+}
+
 /* 基本参数 · 拍摄时间：整行两格宽，高度约为普通卡片一半 */
 .paramCard--timeHalf {
   padding-top: 6px;
@@ -1237,10 +1242,15 @@ a {
 }
 
 .paramCard {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.38);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-radius: 14px;
   padding: 10px 12px;
-  border: 1px solid rgba(17, 24, 39, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 2px 14px rgba(15, 23, 42, 0.08);
 }
 
 .paramValue {
