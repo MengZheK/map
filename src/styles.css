@@ -425,13 +425,13 @@ a {
   padding: calc(7px * 2 / 3) 10px;
 }
 
-/* 手机端：瀑布流间距缩小为原来的 1/5（缩小五分之四） */
+/* 手机端相册瀑布流：横向与纵向间距 3.2px，圆角见 .waterfallItem 覆盖 */
 .albumPage--mobile .waterfall {
-  column-gap: calc(16px / 5);
+  column-gap: 3.2px;
 }
 
 .albumPage--mobile .waterfallItem {
-  margin-bottom: calc(16px / 5);
+  margin-bottom: 3.2px;
 }
 
 .albumMobileTabsWrap .albumNavTabs::-webkit-scrollbar {
@@ -1033,15 +1033,15 @@ a {
 
 .waterfall {
   column-count: 3;
-  column-gap: 16px;
+  column-gap: 4px;
 }
 
 .waterfallItem {
   position: relative;
   break-inside: avoid;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
   cursor: pointer;
-  border-radius: 16px;
+  border-radius: 4px;
   overflow: hidden;
   background: #f3f4f6;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
