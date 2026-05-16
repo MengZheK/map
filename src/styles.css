@@ -792,21 +792,35 @@ a {
   outline-offset: 2px;
 }
 
-.placeCard .lazyPhotoWrap {
+.placeCard .lazyPhotoWrap,
+.placeCard .progressiveImage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   width: 100%;
   height: 100%;
 }
 
-.placeCardImg {
+.placeCard .progressiveImage__main,
+.placeCard .progressiveImage__main.placeCardImg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
+}
+
+.placeCardImg {
+  object-fit: cover;
+  object-position: center;
 }
 
 .placeCardShade {
   position: absolute;
   inset: 0;
+  z-index: 1;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.15) 42%, transparent 72%);
   pointer-events: none;
 }
@@ -816,6 +830,7 @@ a {
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 2;
   padding: 18px 10px 16px;
   text-align: center;
   color: #ffffff;
@@ -1312,8 +1327,7 @@ a {
 }
 
 .lazyPhotoWrap .waterfallImg,
-.lazyPhotoWrap .thumbImg,
-.lazyPhotoWrap .placeCardImg {
+.lazyPhotoWrap .thumbImg {
   width: 100%;
   display: block;
   height: auto;
