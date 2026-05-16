@@ -1,0 +1,137 @@
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  photoDisplayUrl,
+  photoPlaceholderUrl,
+  resolvePhotoSrc,
+  type PhotoImageVariant,
+} from "./imageUrl";
+
+export type ProgressivePhase = "idle" | "loading" | "ready" | "error";
+
+type ProgressiveImageProps = {
+  src: string;
+  alt?: string;
+  className?: string;
+  variant?: PhotoImageVariant;
+  /** false 时仅显示占位，不发起请求 */
+  loadEnabled?: boolean;
+  fetchPriority?: "high" | "low" | "auto";
+  /** cover：铺满父容器（地图地点卡片等） */
+  fit?: "intrinsic" | "cover";
+};
+
+export default function ProgressiveImage({
+  src,
+  alt = "",
+  className = "",
+  variant = "grid",
+  loadEnabled = true,
+  fetchPriority = "auto",
+  fit = "intrinsic",
+}: ProgressiveImageProps) {
+  const fullUrl = resolvePhotoSrc(src);
+  const mainUrl = photoDisplayUrl(src, variant);
+  const tinyUrl = photoPlaceholderUrl(src);
+
+  const [phase, setPhase] = useState<ProgressivePhase>("idle");
+  const [activeSrc, setActiveSrc] = useState<string | null>(null);
+  const [blurReady, setBlurReady] = useState(false);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    setBlurReady(false);
+    if (!loadEnabled) {
+      setPhase("idle");
+      setActiveSrc(null);
+      return;
+    }
+    setPhase("loading");
+    setActiveSrc(mainUrl);
+  }, [loadEnabled, mainUrl, src]);
+
+  const reveal = useCallback(async (img: HTMLImageElement) => {
+    try {
+      if (img.decode) await img.decode();
+    } catch {
+      /* 解码失败仍展示 */
+    }
+    if (!mountedRef.current) return;
+    requestAnimationFrame(() => {
+      if (mountedRef.current) setPhase("ready");
+    });
+  }, []);
+
+  const onMainLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    void reveal(e.currentTarget);
+  };
+
+  const onMainError = () => {
+    if (activeSrc !== fullUrl) {
+      setActiveSrc(fullUrl);
+      return;
+    }
+    setPhase("error");
+  };
+
+  const showLoader = loadEnabled && phase === "loading";
+
+  return (
+    <div
+      className={
+        "progressiveImage" +
+        (fit === "cover" ? " progressiveImage--cover" : "") +
+        (phase === "ready" ? " progressiveImage--ready" : "") +
+        (showLoader ? " progressiveImage--loading" : "") +
+        (!loadEnabled ? " progressiveImage--deferred" : "")
+      }
+    >
+      <div className="progressiveImage__stage" aria-hidden={phase === "ready"}>
+        {tinyUrl && loadEnabled ? (
+          <img
+            className={"progressiveImage__blur" + (blurReady ? " progressiveImage__blur--on" : "")}
+            src={tinyUrl}
+            alt=""
+            decoding="async"
+            onLoad={() => setBlurReady(true)}
+          />
+        ) : null}
+        <div className="progressiveImage__shimmer" />
+        <div className="progressiveImage__pulse" />
+      </div>
+
+      {phase === "error" ? (
+        <div className="progressiveImage__error">
+          <span className="progressiveImage__errorIcon" aria-hidden>
+            ⌁
+          </span>
+          <span>加载失败</span>
+        </div>
+      ) : null}
+
+      {activeSrc ? (
+        <img
+          className={
+            "progressiveImage__main " +
+            className +
+            (phase === "ready" ? " progressiveImage__main--visible" : "")
+          }
+          src={activeSrc}
+          alt={alt}
+          decoding="async"
+          fetchPriority={fetchPriority}
+          onLoad={onMainLoad}
+          onError={onMainError}
+        />
+      ) : null}
+
+      {showLoader ? <span className="progressiveImage__loader" aria-label="图片加载中" /> : null}
+    </div>
+  );
+}

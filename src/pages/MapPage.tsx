@@ -767,7 +767,12 @@ export default function MapPage() {
                                 tabIndex={0}
                                 title={g.label}
                               >
-                                <LazyPhoto src={g.cover.src} className="placeCardImg" variant="thumb" />
+                                <LazyPhoto
+                                  src={g.cover.src}
+                                  className="placeCardImg"
+                                  variant="thumb"
+                                  fit="cover"
+                                />
                                 <div className="placeCardShade" aria-hidden />
                                 <div className="placeCardName">{g.label}</div>
                               </div>

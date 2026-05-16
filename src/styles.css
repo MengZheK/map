@@ -840,6 +840,7 @@ a {
 }
 
 .thumbFrame {
+  position: relative;
   border-radius: 0;
   overflow: hidden;
   aspect-ratio: 1 / 1;
@@ -848,9 +849,26 @@ a {
   background: #ffffff;
 }
 
+.thumbFrame .lazyPhotoWrap,
+.thumbFrame .progressiveImage,
+.thumbFrame .progressiveImage--cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .thumbItem.active .thumbFrame {
   border-color: var(--accent);
   border-width: 2px;
+}
+
+.thumbImg,
+.progressiveImage__main.thumbImg,
+.waterfallImg,
+.placeCardImg,
+.modalImage {
+  image-orientation: from-image;
 }
 
 .thumbImg {
@@ -1066,9 +1084,225 @@ a {
   }
 }
 
+/* —— 渐进式图片加载（占位 / 模糊预览 / 渐显） —— */
 .lazyPhotoWrap {
   display: block;
   width: 100%;
+  position: relative;
+}
+
+.waterfallItem .lazyPhotoWrap {
+  min-height: 148px;
+}
+
+.progressiveImage {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  background: #e8ebf0;
+}
+
+.progressiveImage--cover {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+
+.progressiveImage__stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 1;
+  transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.progressiveImage--ready .progressiveImage__stage {
+  opacity: 0;
+}
+
+.progressiveImage__blur {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.1);
+  filter: blur(20px) saturate(1.05);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.progressiveImage__blur--on {
+  opacity: 1;
+}
+
+.progressiveImage__shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 35%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0) 65%
+  );
+  background-size: 220% 100%;
+  animation: progressiveShimmer 1.4s ease-in-out infinite;
+}
+
+.progressiveImage--ready .progressiveImage__shimmer,
+.progressiveImage--ready .progressiveImage__pulse {
+  animation: none;
+  opacity: 0;
+}
+
+.progressiveImage__pulse {
+  position: absolute;
+  inset: 0;
+  background: rgba(232, 235, 240, 0.5);
+  animation: progressivePulse 2s ease-in-out infinite;
+}
+
+.progressiveImage__main {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: block;
+  height: auto;
+  opacity: 0;
+  transform: scale(1.012);
+  filter: blur(8px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform, filter;
+}
+
+.progressiveImage--cover .progressiveImage__main {
+  height: 100%;
+  object-fit: cover;
+}
+
+.progressiveImage__main--visible {
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0);
+}
+
+.progressiveImage__loader {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(15, 23, 42, 0.1);
+  border-top-color: rgba(0, 122, 255, 0.85);
+  border-radius: 50%;
+  animation: progressiveSpin 0.8s linear infinite;
+  opacity: 1;
+  transition: opacity 0.35s ease;
+}
+
+.progressiveImage--ready .progressiveImage__loader {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.progressiveImage__error {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(60, 60, 67, 0.55);
+  background: #eceef2;
+}
+
+.progressiveImage__errorIcon {
+  font-size: 22px;
+  opacity: 0.45;
+}
+
+@keyframes progressiveShimmer {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+@keyframes progressivePulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
+@keyframes progressiveSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.progressiveImage--deferred .progressiveImage__shimmer {
+  animation: none;
+  opacity: 0.35;
+}
+
+.progressiveImage--deferred .progressiveImage__pulse {
+  animation: none;
+}
+
+.modalImageInner .progressiveImage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  background: transparent;
+}
+
+.modalImageInner .progressiveImage__stage {
+  background: rgba(12, 14, 20, 0.35);
+}
+
+.modalImageInner .progressiveImage__main.modalImage {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressiveImage__main,
+  .progressiveImage__stage,
+  .progressiveImage__blur {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+
+  .progressiveImage__main {
+    filter: none;
+  }
+
+  .progressiveImage__main--visible {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .lazyPhotoWrap .waterfallImg,
@@ -1077,23 +1311,6 @@ a {
   width: 100%;
   display: block;
   height: auto;
-}
-
-.lazyPhotoSkeleton {
-  width: 100%;
-  min-height: 120px;
-  background: linear-gradient(90deg, #f3f4f6 0%, #e9ecef 50%, #f3f4f6 100%);
-  background-size: 200% 100%;
-  animation: lazyPhotoShimmer 1.2s ease-in-out infinite;
-}
-
-@keyframes lazyPhotoShimmer {
-  0% {
-    background-position: 100% 0;
-  }
-  100% {
-    background-position: -100% 0;
-  }
 }
 
 .waterfallImg {

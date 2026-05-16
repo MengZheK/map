@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { photoDisplayUrl, resolvePhotoSrc, type PhotoImageVariant } from "./imageUrl";
+import React from "react";
+import type { PhotoImageVariant } from "./imageUrl";
+import ProgressiveImage from "./ProgressiveImage";
 import { useInView } from "./useInView";
 
 type LazyPhotoProps = {
@@ -7,9 +8,9 @@ type LazyPhotoProps = {
   alt?: string;
   className?: string;
   variant?: PhotoImageVariant;
-  /** 首屏关键图：立即加载并提高优先级 */
   priority?: boolean;
   fetchPriority?: "high" | "low" | "auto";
+  fit?: "intrinsic" | "cover";
 };
 
 export default function LazyPhoto({
@@ -19,41 +20,26 @@ export default function LazyPhoto({
   variant = "grid",
   priority = false,
   fetchPriority,
+  fit = "intrinsic",
 }: LazyPhotoProps) {
-  const { ref, inView } = useInView<HTMLDivElement>({ enabled: !priority });
-  const shouldLoad = priority || inView;
+  const { ref, inView } = useInView<HTMLDivElement>({
+    enabled: !priority,
+    rootMargin: "520px 0px",
+  });
 
-  const fullUrl = resolvePhotoSrc(src);
-  const optimizedUrl = photoDisplayUrl(src, variant);
-  const [imgSrc, setImgSrc] = useState<string | null>(priority ? optimizedUrl : null);
-
-  useEffect(() => {
-    if (shouldLoad && !imgSrc) setImgSrc(optimizedUrl);
-  }, [shouldLoad, optimizedUrl, imgSrc]);
-
-  useEffect(() => {
-    if (priority) setImgSrc(optimizedUrl);
-  }, [optimizedUrl, priority]);
-
-  const onError = () => {
-    if (imgSrc && imgSrc !== fullUrl) setImgSrc(fullUrl);
-  };
+  const loadEnabled = priority || inView;
 
   return (
     <div ref={ref} className="lazyPhotoWrap">
-      {imgSrc ? (
-        <img
-          className={className}
-          src={imgSrc}
-          alt={alt}
-          decoding="async"
-          loading={priority ? "eager" : "lazy"}
-          fetchPriority={fetchPriority ?? (priority ? "high" : "auto")}
-          onError={onError}
-        />
-      ) : (
-        <div className="lazyPhotoSkeleton" aria-hidden />
-      )}
+      <ProgressiveImage
+        src={src}
+        alt={alt}
+        className={className ?? ""}
+        variant={variant}
+        loadEnabled={loadEnabled}
+        fetchPriority={fetchPriority ?? (priority ? "high" : "auto")}
+        fit={fit}
+      />
     </div>
   );
 }

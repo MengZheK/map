@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Photo } from "./photoUtils";
-import { photoDisplayUrl, preloadPhoto } from "./imageUrl";
+import { preloadPhoto } from "./imageUrl";
+import ProgressiveImage from "./ProgressiveImage";
 import useCategories from "./useCategories";
 import { categoryTitleForId } from "./categoryLabels";
 import {
@@ -287,12 +288,11 @@ export default function PhotoDetailModal({
                     : "")
               }
             >
-              <img
+              <ProgressiveImage
+                src={photo.src}
+                variant="full"
                 className="modalImage"
-                src={photoDisplayUrl(photo.src, "full")}
-                alt=""
-                loading="eager"
-                decoding="async"
+                loadEnabled
                 fetchPriority="high"
               />
             </div>
