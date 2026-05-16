@@ -11,6 +11,13 @@ export type MaptoolApi = {
   selectProjectDir: () => Promise<string | null>;
   selectPhotosJson: () => Promise<string | null>;
   selectImageFiles: () => Promise<string[]>;
+  selectSpreadsheet: () => Promise<string | null>;
+  parseSpreadsheetUrls: (
+    filePath: string,
+  ) => Promise<
+    | { ok: true; pairs: { file: string; url: string }[]; map: Record<string, string> }
+    | { ok: false; error: string }
+  >;
   readPhotosJson: (filePath: string) => Promise<unknown>;
   readExif: (filePath: string) => Promise<Record<string, unknown> | null>;
   backupAndWriteJson: (filePath: string, data: unknown) => Promise<{ ok: true; backupPath: string }>;

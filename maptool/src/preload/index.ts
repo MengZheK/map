@@ -13,6 +13,13 @@ contextBridge.exposeInMainWorld("maptool", {
   selectProjectDir: (): Promise<string | null> => ipcRenderer.invoke("select-project-dir"),
   selectPhotosJson: (): Promise<string | null> => ipcRenderer.invoke("select-photos-json"),
   selectImageFiles: (): Promise<string[]> => ipcRenderer.invoke("select-image-files"),
+  selectSpreadsheet: (): Promise<string | null> => ipcRenderer.invoke("select-spreadsheet"),
+  parseSpreadsheetUrls: (
+    filePath: string,
+  ): Promise<
+    | { ok: true; pairs: { file: string; url: string }[]; map: Record<string, string> }
+    | { ok: false; error: string }
+  > => ipcRenderer.invoke("parse-spreadsheet-urls", filePath),
   readPhotosJson: (filePath: string): Promise<unknown> => ipcRenderer.invoke("read-photos-json", filePath),
   readExif: (filePath: string): Promise<Record<string, unknown> | null> =>
     ipcRenderer.invoke("read-exif", filePath),

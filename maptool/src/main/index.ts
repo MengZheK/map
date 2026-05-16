@@ -3,6 +3,8 @@ import { readFile, writeFile, copyFile, mkdir } from "fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "url";
 import { readPhotoMetadata } from "./readExifPipeline";
+import { parseSpreadsheetUrlFile } from "./parseSpreadsheetFile";
+import { parsePhotosJsonText } from "../shared/readPhotosJson";
 import { DEFAULT_CATEGORIES, type CategoryRow } from "../shared/photoTypes";
 
 const __mainDir = dirname(fileURLToPath(import.meta.url));
@@ -128,6 +130,23 @@ ipcMain.handle(
   },
 );
 
+ipcMain.handle("select-spreadsheet", async () => {
+  const r = await dialog.showOpenDialog({
+    title: "选择 Excel 表格（file / url 列）",
+    properties: ["openFile"],
+    filters: [
+      { name: "表格", extensions: ["xlsx", "xls", "csv"] },
+      { name: "所有文件", extensions: ["*"] },
+    ],
+  });
+  if (r.canceled || r.filePaths.length === 0) return null;
+  return r.filePaths[0]!;
+});
+
+ipcMain.handle("parse-spreadsheet-urls", async (_e, filePath: string) => {
+  return parseSpreadsheetUrlFile(filePath);
+});
+
 ipcMain.handle("select-image-files", async () => {
   const r = await dialog.showOpenDialog({
     title: "选择照片（可多选）",
@@ -166,7 +185,7 @@ ipcMain.handle("select-image-files", async () => {
 
 ipcMain.handle("read-photos-json", async (_e, filePath: string) => {
   const raw = await readFile(filePath, "utf-8");
-  return JSON.parse(raw) as unknown;
+  return parsePhotosJsonText(raw);
 });
 
 ipcMain.handle("read-exif", async (_e, filePath: string) => {
@@ -178,6 +197,9 @@ export type WritePayload = { filePath: string; data: unknown };
 
 ipcMain.handle("backup-and-write-json", async (_e, payload: WritePayload) => {
   const { filePath, data } = payload;
+  if (!Array.isArray(data)) {
+    throw new Error("photos.json 必须为数组，拒绝写入");
+  }
   const json = JSON.stringify(data, null, 2);
   const backupPath = filePath + ".bak";
   try {

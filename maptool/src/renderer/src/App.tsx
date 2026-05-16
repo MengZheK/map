@@ -5,6 +5,7 @@ import { buildPhotoEntry } from "../../shared/buildPhotoEntry";
 import { enrichPartialWithPlaceFromCoords } from "../../shared/enrichPhotoPartial";
 import { roundPhotoNumericFields } from "../../shared/roundPhotoNumerics";
 import { mergePhotoEntries, nextPhotoId } from "../../shared/mergePhotos";
+import { applyUrlMapToDrafts } from "../../shared/parseUrlSpreadsheet";
 import DraftPhotoCard, { type DraftPhoto } from "./DraftPhotoCard";
 
 function newDraftKey(): string {
@@ -119,6 +120,49 @@ export default function App(): React.ReactElement {
     }
     setDrafts((d) => [...d, ...nextDrafts]);
     setInfo(`已添加 ${nextDrafts.length} 张照片到编辑区，请填写图床链接并核对解析信息。`);
+  };
+
+  const onImportExcelUrls = async () => {
+    setError(null);
+    if (drafts.length === 0) {
+      window.alert(
+        "请先「选择本地照片」添加到编辑区，再导入 Excel 批量填写链接。\n\n表格需包含表头 file（可为带目录的路径，如 任意文件夹/照片.jpg）与 url（COS 地址），按文件名与编辑区照片匹配。",
+      );
+      setError("编辑区暂无照片，无法批量填链接");
+      return;
+    }
+    const filePath = await api.selectSpreadsheet();
+    if (!filePath) return;
+    try {
+      const parsed = await api.parseSpreadsheetUrls(filePath);
+      if (!parsed.ok) {
+        window.alert(`无法读取表格。\n\n原因：${parsed.error}`);
+        setError(parsed.error);
+        return;
+      }
+      const { drafts: nextDrafts, result } = applyUrlMapToDrafts(drafts, parsed.map, parsed.pairs);
+      setDrafts(nextDrafts);
+
+      const matchedCount = drafts.length - result.unmatchedDrafts.length;
+      let msg = `已从表格导入 ${parsed.pairs.length} 条链接；匹配编辑区 ${matchedCount}/${drafts.length} 张`;
+      if (result.updated > 0) msg += `，新填写或更新 ${result.updated} 张`;
+      if (result.unmatchedDrafts.length > 0) {
+        const sample = result.unmatchedDrafts.slice(0, 8).join("、");
+        const more =
+          result.unmatchedDrafts.length > 8 ? ` 等 ${result.unmatchedDrafts.length} 个` : "";
+        msg += `；未在表格中找到：${sample}${more}`;
+      }
+      if (result.unusedExcelFiles.length > 0) {
+        const sample = result.unusedExcelFiles.slice(0, 8).join("、");
+        const more = result.unusedExcelFiles.length > 8 ? ` 等 ${result.unusedExcelFiles.length} 条` : "";
+        msg += `；表格中未匹配到编辑区照片：${sample}${more}`;
+      }
+      setInfo(msg);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      window.alert(`读取表格失败。\n\n原因：${msg}`);
+      setError(msg);
+    }
   };
 
   const patchDraft = (key: string, patch: Partial<DraftPhoto>) => {
@@ -368,11 +412,26 @@ export default function App(): React.ReactElement {
           <div className="row headBar__row">
             <div>
               <span className="headBar__title">新增照片</span>
-              <p className="hint headBar__hint">可选一张或多张本地文件；解析结果可逐项修改，折叠区块节省空间。</p>
+              <p className="hint headBar__hint">
+                可选一张或多张本地文件；也可用 Excel（表头 file、url）批量填写 COS 链接，再核对解析信息。
+              </p>
             </div>
             <div className="row">
               <button type="button" className="btn btn--primary" onClick={onPickImages}>
                 选择本地照片…
+              </button>
+              <button
+                type="button"
+                className="btn"
+                onClick={onImportExcelUrls}
+                disabled={drafts.length === 0}
+                title={
+                  drafts.length === 0
+                    ? "请先选择本地照片"
+                    : "从 Excel 按 file 列匹配（支持带目录路径，按文件名对齐）并填入 url"
+                }
+              >
+                从 Excel 批量填链接…
               </button>
               {drafts.length > 0 ? (
                 <>
