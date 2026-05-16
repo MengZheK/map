@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Photo } from "./photoUtils";
 import { preloadPhoto } from "./imageUrl";
+import ModalPinchZoom from "./ModalPinchZoom";
 import ProgressiveImage from "./ProgressiveImage";
 import useCategories from "./useCategories";
 import { categoryTitleForId } from "./categoryLabels";
@@ -93,47 +94,6 @@ export default function PhotoDetailModal({
   const goNext = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     navigateNext();
-  };
-
-  /** 手机端：横向滑动换图；滑动后抑制紧随其后的 click，避免误触参数面板 */
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
-  const suppressImageClickRef = useRef(false);
-
-  const SWIPE_MIN_PX = 56;
-  const SWIPE_DOMINANCE = 1.15;
-
-  const onImageTouchStart = (e: React.TouchEvent) => {
-    if (!isMobile) return;
-    const t = e.touches[0];
-    if (!t) return;
-    touchStartRef.current = { x: t.clientX, y: t.clientY };
-  };
-
-  const onImageTouchEnd = (e: React.TouchEvent) => {
-    if (!isMobile || !touchStartRef.current) return;
-    const t = e.changedTouches[0];
-    if (!t) {
-      touchStartRef.current = null;
-      return;
-    }
-    const dx = t.clientX - touchStartRef.current.x;
-    const dy = t.clientY - touchStartRef.current.y;
-    touchStartRef.current = null;
-
-    const absX = Math.abs(dx);
-    const absY = Math.abs(dy);
-    if (absX < SWIPE_MIN_PX || absX < absY * SWIPE_DOMINANCE) return;
-
-    suppressImageClickRef.current = true;
-    window.setTimeout(() => {
-      suppressImageClickRef.current = false;
-    }, 400);
-    if (dx < 0) navigateNext();
-    else navigatePrev();
-  };
-
-  const onImageTouchCancel = () => {
-    touchStartRef.current = null;
   };
 
   useEffect(() => {
@@ -260,42 +220,65 @@ export default function PhotoDetailModal({
               "modalImageWrap modalImageWrap--clickable" +
               (isMobile ? " modalImageWrap--mobileSwipe" : "")
             }
-            onClick={() => {
-              if (suppressImageClickRef.current) return;
-              setShowParamPanel((v) => !v);
-            }}
-            onTouchStart={onImageTouchStart}
-            onTouchEnd={onImageTouchEnd}
-            onTouchCancel={onImageTouchCancel}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
+              if (!isMobile && (e.key === "Enter" || e.key === " ")) {
                 e.preventDefault();
                 setShowParamPanel((v) => !v);
               }
             }}
             aria-label={showParamPanel ? "点击隐藏拍摄参数" : "点击显示拍摄参数"}
           >
-            <div
-              key={photo.id}
-              className={
-                "modalImageInner " +
-                (slideDir === "next"
-                  ? "modalImageInner--enterNext"
-                  : slideDir === "prev"
-                    ? "modalImageInner--enterPrev"
-                    : "")
-              }
-            >
-              <ProgressiveImage
-                src={photo.src}
-                variant="full"
-                className="modalImage"
-                loadEnabled
-                fetchPriority="high"
-              />
-            </div>
+            {isMobile ? (
+              <ModalPinchZoom
+                photoId={photo.id}
+                onSwipeLeft={hasNext ? navigateNext : undefined}
+                onSwipeRight={hasPrev ? navigatePrev : undefined}
+                onTap={() => setShowParamPanel((v) => !v)}
+              >
+                <div
+                  key={photo.id}
+                  className={
+                    "modalImageInner " +
+                    (slideDir === "next"
+                      ? "modalImageInner--enterNext"
+                      : slideDir === "prev"
+                        ? "modalImageInner--enterPrev"
+                        : "")
+                  }
+                >
+                  <ProgressiveImage
+                    src={photo.src}
+                    variant="full"
+                    className="modalImage"
+                    loadEnabled
+                    fetchPriority="high"
+                  />
+                </div>
+              </ModalPinchZoom>
+            ) : (
+              <div
+                key={photo.id}
+                className={
+                  "modalImageInner " +
+                  (slideDir === "next"
+                    ? "modalImageInner--enterNext"
+                    : slideDir === "prev"
+                      ? "modalImageInner--enterPrev"
+                      : "")
+                }
+                onClick={() => setShowParamPanel((v) => !v)}
+              >
+                <ProgressiveImage
+                  src={photo.src}
+                  variant="full"
+                  className="modalImage"
+                  loadEnabled
+                  fetchPriority="high"
+                />
+              </div>
+            )}
           </div>
 
           <button
