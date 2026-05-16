@@ -1,6 +1,6 @@
 import React from "react";
 import type { Photo } from "./photoUtils";
-import { publicUrl } from "./publicUrl";
+import LazyPhoto from "./LazyPhoto";
 
 export default function PhotoWaterfall({
   photos,
@@ -14,7 +14,7 @@ export default function PhotoWaterfall({
   return (
     <div className="waterfallWrap">
       <div className="waterfall" aria-label="waterfall gallery">
-        {photos.map((p) => {
+        {photos.map((p, index) => {
           const active = p.id === activePhotoId;
           return (
             <div
@@ -24,7 +24,13 @@ export default function PhotoWaterfall({
               role="button"
               tabIndex={0}
             >
-              <img className="waterfallImg" src={publicUrl(p.src)} alt="" loading="lazy" />
+              <LazyPhoto
+                src={p.src}
+                className="waterfallImg"
+                variant="grid"
+                priority={index < 9}
+                fetchPriority={index < 6 ? "high" : undefined}
+              />
             </div>
           );
         })}
@@ -32,4 +38,3 @@ export default function PhotoWaterfall({
     </div>
   );
 }
-

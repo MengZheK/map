@@ -1,6 +1,6 @@
 import React from "react";
 import type { Photo } from "./photoUtils";
-import { publicUrl } from "./publicUrl";
+import LazyPhoto from "./LazyPhoto";
 
 export default function PhotoThumbGrid({
   photos,
@@ -13,7 +13,7 @@ export default function PhotoThumbGrid({
 }) {
   return (
     <div className="thumbGrid" aria-label="photos">
-      {photos.map((p) => {
+      {photos.map((p, index) => {
         const active = p.id === activePhotoId;
         return (
           <div
@@ -24,7 +24,12 @@ export default function PhotoThumbGrid({
             tabIndex={0}
           >
             <div className="thumbFrame">
-              <img className="thumbImg" src={publicUrl(p.src)} alt="" loading="lazy" />
+              <LazyPhoto
+                src={p.src}
+                className="thumbImg"
+                variant="thumb"
+                priority={index < 6}
+              />
             </div>
           </div>
         );
@@ -32,4 +37,3 @@ export default function PhotoThumbGrid({
     </div>
   );
 }
-

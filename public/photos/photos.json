@@ -4799,26 +4799,7 @@
     "takenAt": null,
     "shutterSec": null
   },
-  {
-    "id": "p0279",
-    "src": "https://robotkang-1257995526.cos.ap-chengdu.myqcloud.com/mapphotos-20260516/IMG_6675.JPG",
-    "categoryId": "asia_explore",
-    "lon": null,
-    "lat": null,
-    "locationName": null,
-    "altitudeM": null,
-    "cameraMake": null,
-    "cameraModel": null,
-    "focalLengthMm": null,
-    "aperture": null,
-    "shutterTime": null,
-    "iso": null,
-    "lensModel": null,
-    "description": null,
-    "takenYear": null,
-    "takenAt": null,
-    "shutterSec": null
-  },
+  
   {
     "id": "p0280",
     "src": "https://robotkang-1257995526.cos.ap-chengdu.myqcloud.com/mapphotos-20260516/IMG_7328.JPG",
@@ -5039,26 +5020,7 @@
     "takenAt": null,
     "shutterSec": 0
   },
-  {
-    "id": "p0291",
-    "src": "https://robotkang-1257995526.cos.ap-chengdu.myqcloud.com/mapphotos-20260516/IMG_8442.JPG",
-    "categoryId": "asia_explore",
-    "lon": 116.33019999999999,
-    "lat": 40.003952777777776,
-    "locationName": "北京",
-    "altitudeM": 60.36,
-    "cameraMake": "Apple",
-    "cameraModel": "iPhone 13",
-    "focalLengthMm": 5.1,
-    "aperture": 1.6,
-    "shutterTime": "1/100s",
-    "iso": 80,
-    "lensModel": "iPhone 13 back dual wide camera 5.1mm f/1.6",
-    "description": null,
-    "takenYear": null,
-    "takenAt": null,
-    "shutterSec": 0.01
-  },
+ 
   {
     "id": "p0292",
     "src": "https://robotkang-1257995526.cos.ap-chengdu.myqcloud.com/mapphotos-20260516/IMG_9404.JPG",
@@ -5099,26 +5061,7 @@
     "takenAt": null,
     "shutterSec": 0.01
   },
-  {
-    "id": "p0294",
-    "src": "https://robotkang-1257995526.cos.ap-chengdu.myqcloud.com/mapphotos-20260516/IMG_9689.JPG",
-    "categoryId": "asia_explore",
-    "lon": 112.532325,
-    "lat": 41.40833333333333,
-    "locationName": "乌兰察布",
-    "altitudeM": 1839.96,
-    "cameraMake": "Apple",
-    "cameraModel": "iPhone 13",
-    "focalLengthMm": 5.1,
-    "aperture": 1.6,
-    "shutterTime": null,
-    "iso": 40,
-    "lensModel": "iPhone 13 back dual wide camera 5.1mm f/1.6",
-    "description": null,
-    "takenYear": null,
-    "takenAt": null,
-    "shutterSec": 0
-  },
+  
   {
     "id": "p0295",
     "src": "https://robotkang-1257995526.cos.ap-chengdu.myqcloud.com/mapphotos-20260516/IMG_9808.JPG",

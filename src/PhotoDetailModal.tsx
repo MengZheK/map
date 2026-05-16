@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Photo } from "./photoUtils";
-import { publicUrl } from "./publicUrl";
+import { photoDisplayUrl, preloadPhoto } from "./imageUrl";
 import useCategories from "./useCategories";
 import { categoryTitleForId } from "./categoryLabels";
 import {
@@ -77,6 +77,12 @@ export default function PhotoDetailModal({
     setSlideDir("next");
     onActivePhotoIdChange(photos[index + 1].id);
   }, [hasNext, index, photos, onActivePhotoIdChange]);
+
+  useEffect(() => {
+    if (!photo) return;
+    if (hasPrev) preloadPhoto(photos[index - 1]!.src, "full");
+    if (hasNext) preloadPhoto(photos[index + 1]!.src, "full");
+  }, [photo, hasPrev, hasNext, index, photos]);
 
   const goPrev = (e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -283,10 +289,11 @@ export default function PhotoDetailModal({
             >
               <img
                 className="modalImage"
-                src={publicUrl(photo.src)}
+                src={photoDisplayUrl(photo.src, "full")}
                 alt=""
-                loading="lazy"
+                loading="eager"
                 decoding="async"
+                fetchPriority="high"
               />
             </div>
           </div>

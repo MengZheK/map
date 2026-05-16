@@ -23,7 +23,7 @@ import {
 } from "../photoUtils";
 import PhotoThumbGrid from "../PhotoThumbGrid";
 import PhotoDetailModal from "../PhotoDetailModal";
-import { publicUrl } from "../publicUrl";
+import LazyPhoto from "../LazyPhoto";
 import ViewModeToggle from "../ViewModeToggle";
 import { getRasterBasemapStyle } from "../mapBasemapStyle";
 import { useVisitorLocation, useVisitorLocationRefresh } from "../VisitorLocation";
@@ -767,7 +767,7 @@ export default function MapPage() {
                                 tabIndex={0}
                                 title={g.label}
                               >
-                                <img className="placeCardImg" src={publicUrl(g.cover.src)} alt="" loading="lazy" />
+                                <LazyPhoto src={g.cover.src} className="placeCardImg" variant="thumb" />
                                 <div className="placeCardShade" aria-hidden />
                                 <div className="placeCardName">{g.label}</div>
                               </div>
