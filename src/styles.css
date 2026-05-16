@@ -850,12 +850,21 @@ a {
 }
 
 .thumbFrame .lazyPhotoWrap,
-.thumbFrame .progressiveImage,
-.thumbFrame .progressiveImage--cover {
+.thumbFrame .progressiveImage {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
+}
+
+.thumbFrame .progressiveImage__main,
+.thumbFrame .progressiveImage__main.thumbImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .thumbItem.active .thumbFrame {
@@ -872,9 +881,6 @@ a {
 }
 
 .thumbImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
   display: block;
 }
 

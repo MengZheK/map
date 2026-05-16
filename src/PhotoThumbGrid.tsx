@@ -28,6 +28,7 @@ export default function PhotoThumbGrid({
                 src={p.src}
                 className="thumbImg"
                 variant="thumb"
+                fit="cover"
                 priority={index < 6}
               />
             </div>
