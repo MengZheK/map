@@ -425,6 +425,16 @@ a {
   padding: calc(7px * 2 / 3) 10px;
 }
 
+/* 电脑端相册瀑布流：上下左右间距均为 4px */
+.albumPage:not(.albumPage--mobile) .waterfall {
+  column-gap: 4px;
+}
+
+.albumPage:not(.albumPage--mobile) .waterfallItem {
+  display: block;
+  margin-bottom: 4px;
+}
+
 /* 手机端相册瀑布流：横向与纵向间距 3.2px，圆角见 .waterfallItem 覆盖 */
 .albumPage--mobile .waterfall {
   column-gap: 3.2px;
