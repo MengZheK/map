@@ -69,7 +69,7 @@ export default function ProgressiveImage({
     setActiveSrc(mainUrl);
   }, [loadEnabled, mainUrl, src]);
 
-  const reveal = useCallback(
+  const finishReveal = useCallback(
     async (img: HTMLImageElement) => {
       try {
         if (img.decode) await img.decode();
@@ -93,7 +93,7 @@ export default function ProgressiveImage({
   );
 
   const onMainLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    void reveal(e.currentTarget);
+    void finishReveal(e.currentTarget);
   };
 
   const onMainError = () => {
