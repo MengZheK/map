@@ -1339,6 +1339,50 @@ a {
   animation: none;
 }
 
+/* 相册：占位渐出、主图渐入更慢 */
+.progressiveImage--relaxed .progressiveImage__stage {
+  transition:
+    opacity 1.05s cubic-bezier(0.25, 0.1, 0.25, 1),
+    visibility 0s linear 1.05s;
+}
+
+.progressiveImage--relaxed.progressiveImage--ready .progressiveImage__stage {
+  transition-delay: var(--progressive-reveal-delay, 0ms);
+}
+
+.progressiveImage--relaxed .progressiveImage__blur {
+  transition: opacity 0.75s ease;
+}
+
+.progressiveImage--relaxed .progressiveImage__shimmer {
+  animation-duration: 2.4s;
+}
+
+.progressiveImage--relaxed .progressiveImage__pulse {
+  animation-duration: 2.6s;
+}
+
+.progressiveImage--relaxed .progressiveImage__main {
+  opacity: 0;
+  transform: scale(1.018);
+  filter: blur(10px);
+  transition:
+    opacity 1.15s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.15s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 1.15s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--progressive-reveal-delay, 0ms);
+}
+
+.progressiveImage--relaxed .progressiveImage__main--visible {
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0);
+}
+
+.progressiveImage--relaxed .progressiveImage__loader {
+  transition: opacity 0.5s ease;
+}
+
 .modalImageInner .progressiveImage {
   display: flex;
   align-items: center;
@@ -1365,16 +1409,20 @@ a {
 @media (prefers-reduced-motion: reduce) {
   .progressiveImage__main,
   .progressiveImage__stage,
-  .progressiveImage__blur {
+  .progressiveImage__blur,
+  .progressiveImage--relaxed .progressiveImage__main {
     transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
     animation: none !important;
   }
 
-  .progressiveImage__main {
+  .progressiveImage__main,
+  .progressiveImage--relaxed .progressiveImage__main {
     filter: none;
   }
 
-  .progressiveImage__main--visible {
+  .progressiveImage__main--visible,
+  .progressiveImage--relaxed .progressiveImage__main--visible {
     opacity: 1;
     transform: none;
   }

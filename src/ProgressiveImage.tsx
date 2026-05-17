@@ -8,6 +8,8 @@ import {
 
 export type ProgressivePhase = "idle" | "loading" | "ready" | "error";
 
+export type ProgressiveRevealProfile = "default" | "relaxed";
+
 type ProgressiveImageProps = {
   src: string;
   alt?: string;
@@ -18,6 +20,12 @@ type ProgressiveImageProps = {
   fetchPriority?: "high" | "low" | "auto";
   /** cover：铺满父容器（地图地点卡片等） */
   fit?: "intrinsic" | "cover";
+  /** relaxed：更长渐出/渐入，适合相册 */
+  reveal?: ProgressiveRevealProfile;
+  /** 主图解码后至少保留占位时长（毫秒） */
+  minRevealMs?: number;
+  /** 渐入延迟（毫秒），用于瀑布流错峰 */
+  revealDelayMs?: number;
 };
 
 export default function ProgressiveImage({
@@ -28,6 +36,9 @@ export default function ProgressiveImage({
   loadEnabled = true,
   fetchPriority = "auto",
   fit = "intrinsic",
+  reveal = "default",
+  minRevealMs = 0,
+  revealDelayMs = 0,
 }: ProgressiveImageProps) {
   const fullUrl = resolvePhotoSrc(src);
   const mainUrl = photoDisplayUrl(src, variant);
@@ -37,6 +48,7 @@ export default function ProgressiveImage({
   const [activeSrc, setActiveSrc] = useState<string | null>(null);
   const [blurReady, setBlurReady] = useState(false);
   const mountedRef = useRef(true);
+  const loadStartRef = useRef(0);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -52,21 +64,33 @@ export default function ProgressiveImage({
       setActiveSrc(null);
       return;
     }
+    loadStartRef.current = Date.now();
     setPhase("loading");
     setActiveSrc(mainUrl);
   }, [loadEnabled, mainUrl, src]);
 
-  const reveal = useCallback(async (img: HTMLImageElement) => {
-    try {
-      if (img.decode) await img.decode();
-    } catch {
-      /* 解码失败仍展示 */
-    }
-    if (!mountedRef.current) return;
-    requestAnimationFrame(() => {
-      if (mountedRef.current) setPhase("ready");
-    });
-  }, []);
+  const reveal = useCallback(
+    async (img: HTMLImageElement) => {
+      try {
+        if (img.decode) await img.decode();
+      } catch {
+        /* 解码失败仍展示 */
+      }
+      if (minRevealMs > 0) {
+        const wait = minRevealMs - (Date.now() - loadStartRef.current);
+        if (wait > 0) {
+          await new Promise<void>((resolve) => {
+            window.setTimeout(resolve, wait);
+          });
+        }
+      }
+      if (!mountedRef.current) return;
+      requestAnimationFrame(() => {
+        if (mountedRef.current) setPhase("ready");
+      });
+    },
+    [minRevealMs],
+  );
 
   const onMainLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     void reveal(e.currentTarget);
@@ -82,15 +106,22 @@ export default function ProgressiveImage({
 
   const showLoader = loadEnabled && phase === "loading";
 
+  const revealStyle =
+    revealDelayMs > 0
+      ? ({ "--progressive-reveal-delay": `${revealDelayMs}ms` } as React.CSSProperties)
+      : undefined;
+
   return (
     <div
       className={
         "progressiveImage" +
         (fit === "cover" ? " progressiveImage--cover" : "") +
+        (reveal === "relaxed" ? " progressiveImage--relaxed" : "") +
         (phase === "ready" ? " progressiveImage--ready" : "") +
         (showLoader ? " progressiveImage--loading" : "") +
         (!loadEnabled ? " progressiveImage--deferred" : "")
       }
+      style={revealStyle}
     >
       <div className="progressiveImage__stage" aria-hidden={phase === "ready"}>
         {tinyUrl && loadEnabled ? (

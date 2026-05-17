@@ -1,6 +1,6 @@
 import React from "react";
 import type { PhotoImageVariant } from "./imageUrl";
-import ProgressiveImage from "./ProgressiveImage";
+import ProgressiveImage, { type ProgressiveRevealProfile } from "./ProgressiveImage";
 import { useInView } from "./useInView";
 
 type LazyPhotoProps = {
@@ -11,6 +11,8 @@ type LazyPhotoProps = {
   priority?: boolean;
   fetchPriority?: "high" | "low" | "auto";
   fit?: "intrinsic" | "cover";
+  reveal?: ProgressiveRevealProfile;
+  revealDelayMs?: number;
 };
 
 export default function LazyPhoto({
@@ -21,10 +23,14 @@ export default function LazyPhoto({
   priority = false,
   fetchPriority,
   fit = "intrinsic",
+  reveal = "default",
+  revealDelayMs = 0,
 }: LazyPhotoProps) {
+  const relaxed = reveal === "relaxed";
+
   const { ref, inView } = useInView<HTMLDivElement>({
     enabled: !priority,
-    rootMargin: "520px 0px",
+    rootMargin: relaxed ? "200px 0px" : "520px 0px",
   });
 
   const loadEnabled = priority || inView;
@@ -39,6 +45,9 @@ export default function LazyPhoto({
         loadEnabled={loadEnabled}
         fetchPriority={fetchPriority ?? (priority ? "high" : "auto")}
         fit={fit}
+        reveal={reveal}
+        minRevealMs={relaxed ? 520 : 0}
+        revealDelayMs={revealDelayMs}
       />
     </div>
   );

@@ -35,8 +35,10 @@ function WaterfallItem({
         src={photo.src}
         className="waterfallImg"
         variant="grid"
-        priority={index < 9}
-        fetchPriority={index < 6 ? "high" : undefined}
+        reveal="relaxed"
+        revealDelayMs={Math.min(index, 10) * 55}
+        priority={index < 4}
+        fetchPriority={index < 3 ? "high" : undefined}
       />
     </div>
   );
