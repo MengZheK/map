@@ -1,4 +1,6 @@
 node_modules/
 dist/
+.env.local
+.env*.local
 maptool/node_modules/
 maptool/out/
