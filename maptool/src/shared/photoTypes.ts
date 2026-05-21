@@ -19,6 +19,8 @@ export type PhotoEntry = {
   description?: string | null;
   takenYear?: number | null;
   takenAt?: string | null;
+  /** 写入 photos.json 的日期 YYYY-MM-DD */
+  addedAt?: string | null;
   shutterSec?: number | null;
 };
 

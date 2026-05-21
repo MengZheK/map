@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import BrandMark from "../BrandMark";
+import ContactCollectionStats from "../ContactCollectionStats";
+import usePhotos from "../usePhotos";
 import { isSubscribeConfigured, submitPhotoSubscribe } from "../subscribe";
 
 const AUTHOR_EMAIL = "kang1390305137@gmail.com";
 
 export default function ContactPage() {
+  const { photos, loading: photosLoading, catalogUpdatedAt } = usePhotos();
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [feedback, setFeedback] = useState("");
@@ -34,7 +37,7 @@ export default function ContactPage() {
         <div className="contactPageHeaderInner">
           <Link to="/album" className="contactPageBrand">
             <BrandMark size={32} />
-            <span>Hayato Photography</span>
+            <span className="brandWordmark">Hayato Photography</span>
           </Link>
           <Link to="/album" className="contactPageBack">
             返回相册
@@ -48,6 +51,12 @@ export default function ContactPage() {
         <p className="contactPageLead">
           感谢浏览这些旅行与光影瞬间。合作、授权或展览洽谈，欢迎来信；也可订阅更新，在新作上架时收到邮件提醒。
         </p>
+
+        <ContactCollectionStats
+          photos={photos}
+          loading={photosLoading}
+          catalogUpdatedAt={catalogUpdatedAt}
+        />
 
         <section className="contactCard contactCard--subscribe" aria-labelledby="subscribe-heading">
           <div className="contactCardIcon" aria-hidden>

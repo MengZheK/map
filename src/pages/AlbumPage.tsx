@@ -115,7 +115,7 @@ function AlbumBrand({ mobile }: { mobile?: boolean }) {
   return (
     <Link to="/album" className={"albumBrand " + (mobile ? "albumBrand--mobile" : "")}>
       <BrandMark size={28} className="albumBrandMark" />
-      <span className="albumBrandWordmark">Hayato Photography</span>
+      <span className="albumBrandWordmark brandWordmark">Hayato Photography</span>
     </Link>
   );
 }

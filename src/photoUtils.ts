@@ -27,6 +27,8 @@ export type Photo = {
   takenYear?: number | null;
   /** 拍摄日期 ISO：`YYYY-MM-DD`，详情「拍摄时间」优先；缺省时可用 takenYear 推算为当年 1 月 1 日 */
   takenAt?: string | null;
+  /** 写入 photos.json 的日期 ISO：`YYYY-MM-DD`（maptool 合并时写入） */
+  addedAt?: string | null;
 };
 
 /** 地图标记 5 色：前 4 对应年代槽位，末色为「多年份」 */
@@ -192,6 +194,16 @@ function countryShortFromProvince(province: string): string {
   if (province === "其他") return "其他";
   if (isChineseAdminRegionName(province)) return "中国";
   return province;
+}
+
+/** 单张照片所属国家/地区简称（GPS 优先，否则由地名推断） */
+export function countryLabelForPhoto(p: Photo): string {
+  if (hasGps(p)) {
+    const c = countryShortFromLatLon(p.lat, p.lon);
+    if (c) return c;
+  }
+  const prov = resolveProvinceForCityName((p.locationName ?? "").trim() || "未标注");
+  return countryShortFromProvince(prov);
 }
 
 /**
