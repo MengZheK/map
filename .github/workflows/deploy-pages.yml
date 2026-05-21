@@ -24,6 +24,8 @@ jobs:
           node-version: "20"
           cache: npm
       - name: Install & build
+        env:
+          VITE_WEB3FORMS_ACCESS_KEY: ${{ secrets.VITE_WEB3FORMS_ACCESS_KEY }}
         run: |
           npm ci
           npm run build

@@ -1,0 +1,36 @@
+# photos.json 有新增时，向 Resend 配置的订阅者发送更新邮件（可选，需配置 Secrets）
+name: Notify photo subscribers
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "public/photos/photos.json"
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Previous photo count
+        id: prev
+        run: |
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            git show HEAD~1:public/photos/photos.json > /tmp/prev-photos.json 2>/dev/null || echo "[]" > /tmp/prev-photos.json
+          else
+            echo "[]" > /tmp/prev-photos.json
+          fi
+          COUNT=$(node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('/tmp/prev-photos.json','utf8'));process.stdout.write(String(Array.isArray(p)?p.length:0))")
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+
+      - name: Send update emails (Resend)
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM: ${{ secrets.RESEND_FROM }}
+          SUBSCRIBER_EMAILS: ${{ secrets.SUBSCRIBER_EMAILS }}
+          PREV_PHOTO_COUNT: ${{ steps.prev.outputs.count }}
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: node scripts/notify-photo-update.mjs

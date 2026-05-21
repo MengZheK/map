@@ -5,6 +5,7 @@ import type { Photo } from "../photoUtils";
 import { hasGps } from "../photoUtils";
 import { getRefPointForDistance, useVisitorLocation } from "../VisitorLocation";
 import PhotoDetailModal from "../PhotoDetailModal";
+import BrandMark from "../BrandMark";
 import PhotoWaterfall from "../PhotoWaterfall";
 import ViewModeToggle from "../ViewModeToggle";
 
@@ -113,15 +114,7 @@ function useAlbumLayout() {
 function AlbumBrand({ mobile }: { mobile?: boolean }) {
   return (
     <Link to="/album" className={"albumBrand " + (mobile ? "albumBrand--mobile" : "")}>
-      <svg className="albumBrandAperture" width="28" height="28" viewBox="0 0 48 48" aria-hidden>
-        <circle cx="24" cy="24" r="22" fill="none" stroke="currentColor" strokeWidth="1.25" opacity="0.45" />
-        <path
-          fill="currentColor"
-          d="M24 8 38 32H10L24 8zm0 8.5L15 30h18L24 16.5z"
-          opacity="0.9"
-        />
-        <circle cx="24" cy="26" r="5" fill="none" stroke="currentColor" strokeWidth="1.2" />
-      </svg>
+      <BrandMark size={28} className="albumBrandMark" />
       <span className="albumBrandWordmark">Hayato Photography</span>
     </Link>
   );
