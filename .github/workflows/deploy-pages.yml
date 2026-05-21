@@ -25,6 +25,8 @@ jobs:
           cache: npm
       - name: Install & build
         env:
+          VITE_TIANDITU_TK: ${{ secrets.VITE_TIANDITU_TK }}
+          VITE_MAP_BASEMAP_THEME: ${{ vars.VITE_MAP_BASEMAP_THEME }}
           VITE_WEB3FORMS_ACCESS_KEY: ${{ secrets.VITE_WEB3FORMS_ACCESS_KEY }}
         run: |
           npm ci
