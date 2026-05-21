@@ -1641,6 +1641,24 @@ a {
   transition: opacity 0.5s ease;
 }
 
+/* 浏览器/本地已缓存：跳过占位与渐入动画 */
+.progressiveImage--instant .progressiveImage__stage,
+.progressiveImage--instant.progressiveImage--ready .progressiveImage__stage {
+  opacity: 0;
+  transition: none;
+}
+
+.progressiveImage--instant .progressiveImage__main {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition: none;
+}
+
+.progressiveImage--instant .progressiveImage__loader {
+  display: none;
+}
+
 .modalImageInner .progressiveImage {
   display: flex;
   align-items: center;

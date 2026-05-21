@@ -5,6 +5,7 @@ import {
   resolvePhotoSrc,
   type PhotoImageVariant,
 } from "./imageUrl";
+import { markPhotoLoaded, shouldShowPhotoInstantly } from "./photoLoadRegistry";
 
 export type ProgressivePhase = "idle" | "loading" | "ready" | "error";
 
@@ -44,9 +45,16 @@ export default function ProgressiveImage({
   const mainUrl = photoDisplayUrl(src, variant);
   const tinyUrl = photoPlaceholderUrl(src);
 
-  const [phase, setPhase] = useState<ProgressivePhase>("idle");
-  const [activeSrc, setActiveSrc] = useState<string | null>(null);
-  const [blurReady, setBlurReady] = useState(false);
+  const instant =
+    loadEnabled && mainUrl ? shouldShowPhotoInstantly(mainUrl) : false;
+
+  const [phase, setPhase] = useState<ProgressivePhase>(() =>
+    instant ? "ready" : "idle",
+  );
+  const [activeSrc, setActiveSrc] = useState<string | null>(() =>
+    instant && loadEnabled ? mainUrl : null,
+  );
+  const [blurReady, setBlurReady] = useState(instant);
   const mountedRef = useRef(true);
   const loadStartRef = useRef(0);
 
@@ -58,12 +66,22 @@ export default function ProgressiveImage({
   }, []);
 
   useEffect(() => {
-    setBlurReady(false);
     if (!loadEnabled) {
+      setBlurReady(false);
       setPhase("idle");
       setActiveSrc(null);
       return;
     }
+
+    const cached = shouldShowPhotoInstantly(mainUrl);
+    if (cached) {
+      setBlurReady(true);
+      setPhase("ready");
+      setActiveSrc(mainUrl);
+      return;
+    }
+
+    setBlurReady(false);
     loadStartRef.current = Date.now();
     setPhase("loading");
     setActiveSrc(mainUrl);
@@ -85,14 +103,20 @@ export default function ProgressiveImage({
         }
       }
       if (!mountedRef.current) return;
+      if (mainUrl) markPhotoLoaded(mainUrl);
       requestAnimationFrame(() => {
         if (mountedRef.current) setPhase("ready");
       });
     },
-    [minRevealMs],
+    [minRevealMs, mainUrl],
   );
 
   const onMainLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (mainUrl) markPhotoLoaded(mainUrl);
+    if (shouldShowPhotoInstantly(mainUrl)) {
+      setPhase("ready");
+      return;
+    }
     void finishReveal(e.currentTarget);
   };
 
@@ -117,6 +141,7 @@ export default function ProgressiveImage({
         "progressiveImage" +
         (fit === "cover" ? " progressiveImage--cover" : "") +
         (reveal === "relaxed" ? " progressiveImage--relaxed" : "") +
+        (instant ? " progressiveImage--instant" : "") +
         (phase === "ready" ? " progressiveImage--ready" : "") +
         (showLoader ? " progressiveImage--loading" : "") +
         (!loadEnabled ? " progressiveImage--deferred" : "")

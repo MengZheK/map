@@ -1,26 +1,23 @@
 import { useEffect, useState } from "react";
 import type { Photo } from "./photoUtils";
+import { migrateSessionToLocal, readLocalJson, writeLocalJson } from "./localStorageCache";
 
 const defaultPhotosUrl = `${import.meta.env.BASE_URL}photos/photos.json`;
-const CACHE_PREFIX = "kang-map-photos-json:";
+const CACHE_KEY_PREFIX = "kang-map-photos-json:v1:";
+const LEGACY_SESSION_PREFIX = "kang-map-photos-json:";
+
+function cacheKey(url: string): string {
+  return CACHE_KEY_PREFIX + url;
+}
 
 function readCachedPhotos(url: string): Photo[] | null {
-  try {
-    const raw = sessionStorage.getItem(CACHE_PREFIX + url);
-    if (!raw) return null;
-    const data = JSON.parse(raw) as unknown;
-    return Array.isArray(data) ? (data as Photo[]) : null;
-  } catch {
-    return null;
-  }
+  migrateSessionToLocal(LEGACY_SESSION_PREFIX + url, cacheKey(url));
+  const data = readLocalJson<unknown>(cacheKey(url));
+  return Array.isArray(data) ? (data as Photo[]) : null;
 }
 
 function writeCachedPhotos(url: string, photos: Photo[]): void {
-  try {
-    sessionStorage.setItem(CACHE_PREFIX + url, JSON.stringify(photos));
-  } catch {
-    /* 配额满时忽略 */
-  }
+  writeLocalJson(cacheKey(url), photos);
 }
 
 export default function usePhotos(url = defaultPhotosUrl) {
@@ -36,7 +33,7 @@ export default function usePhotos(url = defaultPhotosUrl) {
     }
     setError(null);
 
-    fetch(url)
+    fetch(url, { cache: "default" })
       .then(async (r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const data = await r.json();
