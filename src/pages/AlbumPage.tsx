@@ -10,8 +10,8 @@ import PhotoWaterfall from "../PhotoWaterfall";
 import ViewModeToggle from "../ViewModeToggle";
 
 const ALBUM_NAV_TABS = [
-  { id: "featured", label: "精选" },
   { id: "latest", label: "最新" },
+  { id: "featured", label: "精选" },
   { id: "browse", label: "随览" },
   { id: "nearby", label: "附近" },
   { id: "distant", label: "远方" },
@@ -130,7 +130,7 @@ function AlbumContactLink({ className }: { className?: string }) {
 
 export default function AlbumPage() {
   const { photos, loading, error } = usePhotos();
-  const [activeNav, setActiveNav] = useState<AlbumNavId>("featured");
+  const [activeNav, setActiveNav] = useState<AlbumNavId>("latest");
   const [activePhotoId, setActivePhotoId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const { scrolled, isMobile, mobileScrollCompact } = useAlbumLayout();
