@@ -1,9 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import "../styles/map-chrome.css";
-import "../styles/map-panel.css";
-import "../styles/gallery.css";
 import usePhotos from "../usePhotos";
 import useCategories from "../useCategories";
 import { categoryTitleForId } from "../categoryLabels";

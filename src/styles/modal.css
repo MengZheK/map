@@ -172,8 +172,3 @@
     transform: translateX(0) scale(1);
   }
 }
-
-.waterfall {
-  column-count: 3;
-  column-gap: 4px;
-}

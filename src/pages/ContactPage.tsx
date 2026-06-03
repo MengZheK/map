@@ -4,7 +4,6 @@ import BrandMark from "../BrandMark";
 import ContactCollectionStats from "../ContactCollectionStats";
 import usePhotos from "../usePhotos";
 import { isSubscribeConfigured, submitPhotoSubscribe } from "../subscribe";
-import "../styles/contact.css";
 
 const AUTHOR_EMAIL = "kang1390305137@gmail.com";
 

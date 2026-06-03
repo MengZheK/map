@@ -18,8 +18,6 @@ import {
   parsePhotoTakenDate,
   photoAltText,
 } from "./photoUtils";
-import "./styles/modal.css";
-import "./styles/gallery.css";
 
 function dmsLat(p: Photo): string {
   if (typeof p.lat !== "number") return "-";

@@ -11,8 +11,6 @@ import PhotoWaterfall from "../PhotoWaterfall";
 import ViewModeToggle from "../ViewModeToggle";
 import PageLoader from "../PageLoader";
 import { useAlbumMobile } from "../useAlbumMobile";
-import "../styles/album.css";
-import "../styles/gallery.css";
 
 const ALBUM_NAV_TABS = [
   { id: "latest", label: "最新" },
