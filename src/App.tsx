@@ -1,18 +1,30 @@
 import React, { Suspense, lazy } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { VisitorLocationProvider } from "./VisitorLocation";
 import { PhotosProvider } from "./PhotosProvider";
 import PageLoader from "./PageLoader";
 import AlbumPage from "./pages/AlbumPage";
+import { prefetchMapPageWhenIdle, scheduleMapPagePrefetch } from "./prefetchMapPage";
 
-const MapPage = lazy(() => import("./pages/MapPage"));
+const MapPage = lazy(() => import(/* @vitePrefetch */ "./pages/MapPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 
+function RouteSuspenseFallback() {
+  const { pathname } = useLocation();
+  const message = pathname.startsWith("/map") ? "地图加载中…" : "加载中…";
+  return <PageLoader message={message} />;
+}
+
 export default function App() {
+  React.useEffect(() => {
+    scheduleMapPagePrefetch();
+    prefetchMapPageWhenIdle();
+  }, []);
+
   return (
     <PhotosProvider>
       <VisitorLocationProvider>
-        <Suspense fallback={<PageLoader />}>
+        <Suspense fallback={<RouteSuspenseFallback />}>
           <Routes>
             <Route path="/" element={<Navigate to="/album" replace />} />
             <Route path="/album" element={<AlbumPage />} />

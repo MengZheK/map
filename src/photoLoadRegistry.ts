@@ -59,7 +59,9 @@ export function shouldShowPhotoInstantly(url: string): boolean {
 
 export function markPhotoLoaded(url: string): void {
   if (!url) return;
-  if (loadSet().has(url)) return;
+  const set = loadSet();
+  if (set.has(url)) return;
+  set.add(url);
   pendingUrls.add(url);
   schedulePersist();
 }

@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { NavLink } from "react-router-dom";
+import { prefetchMapPage } from "./prefetchMapPage";
 
 /** Lucide-style「图库」描边图标（与胶囊 currentColor 一致） */
 function IconAlbum({ className }: { className?: string }) {
@@ -46,10 +47,20 @@ function IconMap({ className }: { className?: string }) {
   );
 }
 
+const prefetchMapHandlers = {
+  onMouseEnter: prefetchMapPage,
+  onFocus: prefetchMapPage,
+  onTouchStart: prefetchMapPage,
+};
+
 /**
  * 「相册 | 地图」磨砂玻璃胶囊分段控件
  */
 export default function ViewModeToggle() {
+  useEffect(() => {
+    prefetchMapPage();
+  }, []);
+
   return (
     <nav className="viewModeToggle" aria-label="视图切换">
       <NavLink
@@ -67,6 +78,7 @@ export default function ViewModeToggle() {
         className={({ isActive }) =>
           "viewModeToggle__seg " + (isActive ? "viewModeToggle__seg--active" : "")
         }
+        {...prefetchMapHandlers}
       >
         <IconMap />
         <span>地图</span>

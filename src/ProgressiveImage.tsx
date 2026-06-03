@@ -115,12 +115,22 @@ export default function ProgressiveImage({
   );
 
   const onMainLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
     if (mainUrl) markPhotoLoaded(mainUrl);
+
     if (shouldShowPhotoInstantly(mainUrl)) {
       setPhase("ready");
       return;
     }
-    void finishReveal(e.currentTarget);
+
+    // 默认模式：下载完成即显示，decode 不阻塞呈现
+    if (reveal !== "relaxed" && minRevealMs <= 0) {
+      setPhase("ready");
+      void img.decode?.().catch(() => {});
+      return;
+    }
+
+    void finishReveal(img);
   };
 
   const onMainError = () => {

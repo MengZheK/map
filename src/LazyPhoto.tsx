@@ -56,7 +56,6 @@ export default function LazyPhoto({
         fetchPriority={fetchPriority ?? (priority ? "high" : "auto")}
         fit={fit}
         reveal={reveal}
-        minRevealMs={relaxed ? 520 : 0}
         revealDelayMs={revealDelayMs}
       />
     </div>

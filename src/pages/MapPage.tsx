@@ -22,7 +22,6 @@ import {
   MAP_MARKER_COLORS,
   photoAltText,
 } from "../photoUtils";
-import { mapSelectionAreaTitle } from "../mapSelectionAreaTitle";
 import PhotoThumbGrid from "../PhotoThumbGrid";
 import PhotoDetailModal from "../PhotoDetailModal";
 import LazyPhoto from "../LazyPhoto";
@@ -257,6 +256,9 @@ export default function MapPage() {
     };
   }, [visitorLoc]);
 
+  /** 圈选标题（country-coder 按需加载，不阻塞地图首屏） */
+  const [brushAreaTitle, setBrushAreaTitle] = useState("选区");
+
   const photosInCurrentPlace = useMemo(() => {
     if (topLayer.kind !== "placePhotos") return [];
     const cat = topLayer.categoryId;
@@ -270,10 +272,24 @@ export default function MapPage() {
     return [];
   }, [photos, topLayer]);
 
+  useEffect(() => {
+    if (!anchorGeo) {
+      setBrushAreaTitle("选区");
+      return;
+    }
+    let alive = true;
+    void import("../mapSelectionAreaTitle").then(({ mapSelectionAreaTitle }) => {
+      if (!alive) return;
+      setBrushAreaTitle(mapSelectionAreaTitle(brushPhotos, anchorViewZoom));
+    });
+    return () => {
+      alive = false;
+    };
+  }, [anchorGeo, brushPhotos, anchorViewZoom]);
+
   const titleForHeader = useMemo(() => {
     if (anchorGeo) {
-      const area = mapSelectionAreaTitle(brushPhotos, anchorViewZoom);
-      return `${area} · ${brushPhotos.length} 张`;
+      return `${brushAreaTitle} · ${brushPhotos.length} 张`;
     }
     if (topLayer.kind === "root") return "";
     if (topLayer.kind === "placePhotos" && topLayer.cityGroupKey) {
@@ -286,7 +302,7 @@ export default function MapPage() {
       return name ?? "未命名位置";
     }
     return "";
-  }, [photos, topLayer, anchorGeo, brushPhotos, anchorViewZoom]);
+  }, [photos, topLayer, anchorGeo, brushPhotos, brushAreaTitle]);
 
   const detailModalPhotos = useMemo(() => {
     if (anchorGeo) return brushPhotos;

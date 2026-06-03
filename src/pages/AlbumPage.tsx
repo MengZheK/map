@@ -11,6 +11,7 @@ import PhotoWaterfall from "../PhotoWaterfall";
 import ViewModeToggle from "../ViewModeToggle";
 import PageLoader from "../PageLoader";
 import { useAlbumMobile } from "../useAlbumMobile";
+import { scheduleMapPagePrefetch } from "../prefetchMapPage";
 
 const ALBUM_NAV_TABS = [
   { id: "latest", label: "最新" },
@@ -118,6 +119,10 @@ export default function AlbumPage() {
     () => filterPhotosForNav(photos, activeNav, refHomeForDistance),
     [photos, activeNav, refHomeForDistance],
   );
+
+  useEffect(() => {
+    scheduleMapPagePrefetch();
+  }, []);
 
   const navTabs = (
     <nav className="albumNavTabs" aria-label="相册分类">

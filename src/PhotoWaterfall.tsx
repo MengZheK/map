@@ -7,10 +7,12 @@ import { useAlbumMobile } from "./useAlbumMobile";
 
 function WaterfallItem({
   photo,
+  index,
   active,
   onClickPhoto,
 }: {
   photo: Photo;
+  index: number;
   active: boolean;
   onClickPhoto: (id: string) => void;
 }) {
@@ -27,9 +29,9 @@ function WaterfallItem({
         alt={photoAltText(photo)}
         className="waterfallImg"
         variant="grid"
-        reveal="relaxed"
-        rootMargin="0px 0px"
-        placeholder={false}
+        rootMargin="280px 0px"
+        priority={index < 6}
+        fetchPriority={index < 3 ? "high" : undefined}
       />
     </div>
   );
@@ -62,20 +64,22 @@ export default function PhotoWaterfall({
       <div className="waterfallWrap">
         <div className="waterfall waterfall--split" aria-label="waterfall gallery">
           <div className="waterfallCol">
-            {leftCol.map((p) => (
+            {leftCol.map((p, i) => (
               <WaterfallItem
                 key={p.id}
                 photo={p}
+                index={i * 2}
                 active={p.id === activePhotoId}
                 onClickPhoto={onClickPhoto}
               />
             ))}
           </div>
           <div className="waterfallCol">
-            {rightCol.map((p) => (
+            {rightCol.map((p, i) => (
               <WaterfallItem
                 key={p.id}
                 photo={p}
+                index={i * 2 + 1}
                 active={p.id === activePhotoId}
                 onClickPhoto={onClickPhoto}
               />
@@ -89,10 +93,11 @@ export default function PhotoWaterfall({
   return (
     <div className="waterfallWrap">
       <div className="waterfall" aria-label="waterfall gallery">
-        {photos.map((p) => (
+        {photos.map((p, index) => (
           <WaterfallItem
             key={p.id}
             photo={p}
+            index={index}
             active={p.id === activePhotoId}
             onClickPhoto={onClickPhoto}
           />
