@@ -14,6 +14,10 @@ export function haversineMeters(a: { lat: number; lon: number }, b: { lat: numbe
   return 2 * EARTH_R_M * Math.asin(Math.min(1, Math.sqrt(s)));
 }
 
+export function haversineKm(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
+  return haversineMeters(a, b) / 1000;
+}
+
 /** 当前缩放下，屏幕上 radiusPx 横向距离对应的地面弧长约（米） */
 export function pixelRadiusToMeters(
   map: maplibregl.Map,

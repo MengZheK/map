@@ -18,6 +18,8 @@ type ProgressiveImageProps = {
   variant?: PhotoImageVariant;
   /** false 时仅显示占位，不发起请求 */
   loadEnabled?: boolean;
+  /** false 时不请求模糊小图，仅保留 shimmer 占位 */
+  placeholderEnabled?: boolean;
   fetchPriority?: "high" | "low" | "auto";
   /** cover：铺满父容器（地图地点卡片等） */
   fit?: "intrinsic" | "cover";
@@ -35,6 +37,7 @@ export default function ProgressiveImage({
   className = "",
   variant = "grid",
   loadEnabled = true,
+  placeholderEnabled = true,
   fetchPriority = "auto",
   fit = "intrinsic",
   reveal = "default",
@@ -149,7 +152,7 @@ export default function ProgressiveImage({
       style={revealStyle}
     >
       <div className="progressiveImage__stage" aria-hidden={phase === "ready"}>
-        {tinyUrl && loadEnabled ? (
+        {tinyUrl && loadEnabled && placeholderEnabled ? (
           <img
             className={"progressiveImage__blur" + (blurReady ? " progressiveImage__blur--on" : "")}
             src={tinyUrl}

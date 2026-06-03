@@ -1,8 +1,4 @@
-import {
-  cityShortFromLatLon,
-  countryShortFromLatLon,
-  provinceFullFromLatLon,
-} from "./geoFromCoordinate";
+import { provinceFullFromLatLon } from "./geoFromCoordinate";
 
 export type Photo = {
   id: string;
@@ -199,61 +195,11 @@ function countryShortFromProvince(province: string): string {
 /** 单张照片所属国家/地区简称（GPS 优先，否则由地名推断） */
 export function countryLabelForPhoto(p: Photo): string {
   if (hasGps(p)) {
-    const c = countryShortFromLatLon(p.lat, p.lon);
-    if (c) return c;
+    const provFull = provinceFullFromLatLon(p.lat, p.lon);
+    if (provFull) return "中国";
   }
   const prov = resolveProvinceForCityName((p.locationName ?? "").trim() || "未标注");
   return countryShortFromProvince(prov);
-}
-
-/**
- * 地图圈选标题：按锚定时的缩放决定层级（市 / 省 / 国），均为简称，多项用顿号。
- * 区域名优先由圈内各点 GPS 坐标推断，无法覆盖时再回退到照片地名元数据。
- */
-export function mapSelectionAreaTitle(photos: Photo[], zoomAtAnchor: number): string {
-  const list = photos.filter((p) => hasGps(p));
-  if (list.length === 0) return "选区";
-
-  const ZOOM_CITY = 10.5;
-  const ZOOM_PROVINCE = 6;
-
-  const uniqSorted = (arr: string[]): string =>
-    [...new Set(arr.filter((s) => s && s !== "未标注" && s !== "其他"))].sort().join("、");
-
-  const fallbackProvinceShort = (p: Photo) =>
-    shortAdminRegionName(resolveProvinceForCityName((p.locationName ?? "").trim() || "未标注"));
-
-  const fallbackCityShort = (p: Photo): string | null => {
-    const c = formatShortPlaceName(p);
-    return c !== "未标注" ? c : null;
-  };
-
-  if (zoomAtAnchor >= ZOOM_CITY) {
-    const labels = list.map((p) => {
-      const city = cityShortFromLatLon(p.lat, p.lon);
-      if (city) return city;
-      const provFull = provinceFullFromLatLon(p.lat, p.lon);
-      if (provFull) return shortAdminRegionName(provFull);
-      return fallbackCityShort(p) ?? fallbackProvinceShort(p);
-    });
-    return uniqSorted(labels) || "选区";
-  }
-
-  if (zoomAtAnchor >= ZOOM_PROVINCE) {
-    const labels = list.map((p) => {
-      const provFull = provinceFullFromLatLon(p.lat, p.lon);
-      if (provFull) return shortAdminRegionName(provFull);
-      return fallbackProvinceShort(p);
-    });
-    return uniqSorted(labels) || "选区";
-  }
-
-  const labels = list.map((p) => {
-    const c = countryShortFromLatLon(p.lat, p.lon);
-    if (c) return c;
-    return countryShortFromProvince(resolveProvinceForCityName((p.locationName ?? "").trim() || "未标注"));
-  });
-  return uniqSorted(labels) || "选区";
 }
 
 export function formatTakenRelativeChinese(taken: Date, now: Date = new Date()): string {

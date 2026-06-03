@@ -2,6 +2,8 @@ const STORAGE_KEY = "kang-map-loaded-images:v1";
 const MAX_ENTRIES = 900;
 
 let memorySet: Set<string> | null = null;
+let pendingUrls = new Set<string>();
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
 
 function loadSet(): Set<string> {
   if (memorySet) return memorySet;
@@ -26,12 +28,24 @@ function persist(set: Set<string>): void {
   }
 }
 
-/** 同步探测：浏览器磁盘/内存缓存中是否已有该图 */
-export function probeImageInBrowserCache(url: string): boolean {
-  if (!url) return false;
-  const img = new Image();
-  img.src = url;
-  return img.complete && img.naturalWidth > 0;
+function flushPending(): void {
+  flushTimer = null;
+  if (pendingUrls.size === 0) return;
+  const set = loadSet();
+  for (const url of pendingUrls) set.add(url);
+  pendingUrls.clear();
+  persist(set);
+}
+
+function schedulePersist(): void {
+  if (flushTimer != null) return;
+  flushTimer = window.setTimeout(flushPending, 2000);
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") flushPending();
+  });
 }
 
 /** 本站曾成功加载过（localStorage 记录） */
@@ -40,12 +54,12 @@ export function wasPhotoLoadedBefore(url: string): boolean {
 }
 
 export function shouldShowPhotoInstantly(url: string): boolean {
-  return wasPhotoLoadedBefore(url) || probeImageInBrowserCache(url);
+  return wasPhotoLoadedBefore(url);
 }
 
 export function markPhotoLoaded(url: string): void {
   if (!url) return;
-  const set = loadSet();
-  set.add(url);
-  persist(set);
+  if (loadSet().has(url)) return;
+  pendingUrls.add(url);
+  schedulePersist();
 }

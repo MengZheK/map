@@ -1,6 +1,7 @@
 import React from "react";
 import type { Photo } from "./photoUtils";
 import LazyPhoto from "./LazyPhoto";
+import { onActivateKeyDown } from "./keyboardActivate";
 
 export default function PhotoThumbGrid({
   photos,
@@ -20,6 +21,7 @@ export default function PhotoThumbGrid({
             key={p.id}
             className={"thumbItem " + (active ? "active" : "")}
             onClick={() => onClickPhoto(p.id)}
+            onKeyDown={(e) => onActivateKeyDown(e, () => onClickPhoto(p.id))}
             role="button"
             tabIndex={0}
           >
@@ -29,7 +31,9 @@ export default function PhotoThumbGrid({
                 className="thumbImg"
                 variant="thumb"
                 fit="cover"
-                priority={index < 6}
+                rootMargin="120px 0px"
+                placeholder={false}
+                priority={index < 4}
               />
             </div>
           </div>

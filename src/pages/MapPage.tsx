@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import usePhotos from "../usePhotos";
 import useCategories from "../useCategories";
 import { categoryTitleForId } from "../categoryLabels";
 import type { Photo } from "../photoUtils";
-import { BRUSH_RADIUS_PX } from "../mapBrush";
+import { BRUSH_RADIUS_PX, filterPhotosInPixelCircle } from "../mapBrush";
 import {
   circlePolygonGeoJSON,
   filterPhotosInGeoCircle,
@@ -17,14 +18,16 @@ import {
   getCityGroupKey,
   hasGps,
   makeLocationKey,
-  mapSelectionAreaTitle,
   markerColorIdxForPhotos,
   MAP_MARKER_COLORS,
 } from "../photoUtils";
+import { mapSelectionAreaTitle } from "../mapSelectionAreaTitle";
 import PhotoThumbGrid from "../PhotoThumbGrid";
 import PhotoDetailModal from "../PhotoDetailModal";
 import LazyPhoto from "../LazyPhoto";
+import PageLoader from "../PageLoader";
 import ViewModeToggle from "../ViewModeToggle";
+import { onActivateKeyDown } from "../keyboardActivate";
 import { getRasterBasemapStyle } from "../mapBasemapStyle";
 import { useVisitorLocation, useVisitorLocationRefresh } from "../VisitorLocation";
 
@@ -49,47 +52,6 @@ function collapseMaplibreAttribution(map: maplibregl.Map) {
       el.removeAttribute("open");
     }
   });
-}
-
-function groupByLocationKey(photos: Photo[]) {
-  const map = new Map<
-    string,
-    {
-      locationKey: string;
-      photos: Photo[];
-      centerLat: number;
-      centerLon: number;
-      placeName: string | null;
-    }
-  >();
-
-  for (const p of photos) {
-    if (!hasGps(p)) continue;
-    const key = makeLocationKey(p);
-    if (!key) continue;
-    if (!map.has(key)) {
-      map.set(key, {
-        locationKey: key,
-        photos: [p],
-        centerLat: p.lat,
-        centerLon: p.lon,
-        placeName: p.locationName ?? null,
-      });
-    } else {
-      const cur = map.get(key)!;
-      cur.photos.push(p);
-      cur.placeName = cur.placeName ?? p.locationName ?? null;
-    }
-  }
-
-  for (const v of map.values()) {
-    const lat = v.photos.reduce((s, p) => s + (p.lat as number), 0) / v.photos.length;
-    const lon = v.photos.reduce((s, p) => s + (p.lon as number), 0) / v.photos.length;
-    v.centerLat = lat;
-    v.centerLon = lon;
-  }
-
-  return Array.from(map.values()).sort((a, b) => b.photos.length - a.photos.length);
 }
 
 type CityGroupRow = {
@@ -141,8 +103,8 @@ export default function MapPage() {
   /** 左侧悬浮栏展开/折叠（参考图顶部 chevron） */
   const [sidePanelExpanded, setSidePanelExpanded] = useState(true);
 
-  /** 跟随鼠标的预览圆（屏幕像素） */
-  const [followerScreenPoint, setFollowerScreenPoint] = useState<{ x: number; y: number } | null>(null);
+  /** 跟随鼠标的预览圆（屏幕像素，DOM 直写避免 mousemove 触发整页重绘） */
+  const brushCircleRef = useRef<HTMLDivElement | null>(null);
   /** 当前预览圆内是否有可展示照片（无则灰圈、点击不生效） */
   const [followerPickValid, setFollowerPickValid] = useState(true);
   /** 点击铆钉：地理范围固定，随地图缩放变化 */
@@ -175,6 +137,30 @@ export default function MapPage() {
 
   const gpsPhotosForMapRef = useRef<Photo[]>([]);
   const followerScreenPointRef = useRef<{ x: number; y: number } | null>(null);
+  const followerPickValidRef = useRef(true);
+  const anchorGeoRef = useRef<typeof anchorGeo>(null);
+  const moveRafRef = useRef<number | null>(null);
+  const pendingMovePtRef = useRef<{ x: number; y: number } | null>(null);
+  const cityGroupsCacheRef = useRef(new Map<string, CityGroupRow[]>());
+  const photosForCityGroupsRef = useRef(photos);
+
+  anchorGeoRef.current = anchorGeo;
+  if (photosForCityGroupsRef.current !== photos) {
+    photosForCityGroupsRef.current = photos;
+    cityGroupsCacheRef.current.clear();
+  }
+
+  const getCityGroupsForCategory = useCallback(
+    (categoryId: string) => {
+      let groups = cityGroupsCacheRef.current.get(categoryId);
+      if (!groups) {
+        groups = buildCityGroupsForCategory(photos, categoryId);
+        cityGroupsCacheRef.current.set(categoryId, groups);
+      }
+      return groups;
+    },
+    [photos],
+  );
 
   const activeCategoryId: string | null =
     topLayer.kind === "placePhotos" ? topLayer.categoryId : null;
@@ -266,14 +252,6 @@ export default function MapPage() {
       ],
     };
   }, [visitorLoc]);
-
-  const cityGroupsByCategoryId = useMemo(() => {
-    const map = new Map<string, CityGroupRow[]>();
-    for (const c of categoryList) {
-      map.set(c.id, buildCityGroupsForCategory(photos, c.id));
-    }
-    return map;
-  }, [photos, categoryList]);
 
   const photosInCurrentPlace = useMemo(() => {
     if (topLayer.kind !== "placePhotos") return [];
@@ -501,36 +479,56 @@ export default function MapPage() {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
+    const moveBrushCircle = (pt: { x: number; y: number }) => {
+      const el = brushCircleRef.current;
+      if (!el) return;
+      el.style.display = "block";
+      el.style.left = `${pt.x - BRUSH_RADIUS_PX}px`;
+      el.style.top = `${pt.y - BRUSH_RADIUS_PX}px`;
+    };
+
     const refreshPreviewAt = (pt: { x: number; y: number }) => {
-      const radiusMeters = pixelRadiusToMeters(map, pt, BRUSH_RADIUS_PX);
-      const ll = map.unproject([pt.x, pt.y]);
-      const count = filterPhotosInGeoCircle(
+      const count = filterPhotosInPixelCircle(
+        map,
         gpsPhotosForMapRef.current,
-        { lon: ll.lng, lat: ll.lat },
-        radiusMeters,
+        pt,
+        BRUSH_RADIUS_PX,
       ).length;
-      setFollowerPickValid(count > 0);
+      const valid = count > 0;
+      if (valid !== followerPickValidRef.current) {
+        followerPickValidRef.current = valid;
+        setFollowerPickValid(valid);
+      }
+      const gray = !!anchorGeoRef.current || !valid;
+      brushCircleRef.current?.classList.toggle("mapBrushCircle--followGray", gray);
     };
 
     const onMove = (e: maplibregl.MapMouseEvent) => {
       if (detailOpenRef.current) return;
       const pt = { x: e.point.x, y: e.point.y };
       followerScreenPointRef.current = pt;
-      setFollowerScreenPoint(pt);
-      refreshPreviewAt(pt);
+      pendingMovePtRef.current = pt;
+      moveBrushCircle(pt);
+      if (moveRafRef.current != null) return;
+      moveRafRef.current = window.requestAnimationFrame(() => {
+        moveRafRef.current = null;
+        const pending = pendingMovePtRef.current;
+        if (pending) refreshPreviewAt(pending);
+      });
     };
 
     const onClick = (e: maplibregl.MapMouseEvent) => {
       if (detailOpenRef.current) return;
       const pt = { x: e.point.x, y: e.point.y };
       const ll = e.lngLat;
-      const radiusMeters = pixelRadiusToMeters(map, pt, BRUSH_RADIUS_PX);
-      const picked = filterPhotosInGeoCircle(
+      const picked = filterPhotosInPixelCircle(
+        map,
         gpsPhotosForMapRef.current,
-        { lon: ll.lng, lat: ll.lat },
-        radiusMeters,
+        pt,
+        BRUSH_RADIUS_PX,
       );
       if (picked.length === 0) return;
+      const radiusMeters = pixelRadiusToMeters(map, pt, BRUSH_RADIUS_PX);
       setAnchorViewZoom(map.getZoom());
       setAnchorGeo({ lng: ll.lng, lat: ll.lat, radiusMeters });
     };
@@ -551,6 +549,10 @@ export default function MapPage() {
       map.off("click", onClick);
       map.off("zoomend", onMapViewChange);
       map.off("moveend", onMapViewChange);
+      if (moveRafRef.current != null) {
+        window.cancelAnimationFrame(moveRafRef.current);
+        moveRafRef.current = null;
+      }
     };
   }, [mapLoaded]);
 
@@ -566,17 +568,18 @@ export default function MapPage() {
   }, [followerPickValid, anchorGeo, detailOpen, mapLoaded]);
 
   useEffect(() => {
+    const gray = !!anchorGeo || !followerPickValidRef.current;
+    brushCircleRef.current?.classList.toggle("mapBrushCircle--followGray", gray);
+  }, [anchorGeo, followerPickValid]);
+
+  useEffect(() => {
     // If user goes back to root, close detail modal.
     setDetailOpen(false);
     setActivePhotoId(null);
   }, [topLayer.kind]);
 
   if (loading) {
-    return (
-      <div className="page" style={{ display: "grid", placeItems: "center" }}>
-        Loading...
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (error) {
@@ -619,22 +622,20 @@ export default function MapPage() {
     <div className="page" style={{ position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", inset: 0 }}>
         <div ref={mapContainerRef} style={{ position: "absolute", inset: 0 }} />
-        {followerScreenPoint ? (
-          <div
-            className={
-              "mapBrushCircle " +
-              (anchorGeo || !followerPickValid ? "mapBrushCircle--followGray" : "")
-            }
-            style={{
-              position: "absolute",
-              left: followerScreenPoint.x - BRUSH_RADIUS_PX,
-              top: followerScreenPoint.y - BRUSH_RADIUS_PX,
-              width: BRUSH_RADIUS_PX * 2,
-              height: BRUSH_RADIUS_PX * 2,
-            }}
-            aria-hidden
-          />
-        ) : null}
+        <div
+          ref={brushCircleRef}
+          className="mapBrushCircle mapBrushCircle--followGray"
+          style={{
+            display: "none",
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: BRUSH_RADIUS_PX * 2,
+            height: BRUSH_RADIUS_PX * 2,
+            pointerEvents: "none",
+          }}
+          aria-hidden
+        />
       </div>
 
       {/* 右上角：模式切换 + 缩放 */}
@@ -741,7 +742,7 @@ export default function MapPage() {
                 {topLayer.kind === "root" ? (
                   <div className="mapNavRoot">
                     {categoryList.map((c) => {
-                      const groups = cityGroupsByCategoryId.get(c.id) ?? [];
+                      const groups = getCityGroupsForCategory(c.id);
                       if (groups.length === 0) return null;
                       return (
                         <section key={c.id} className="mapNavSection">
@@ -763,6 +764,20 @@ export default function MapPage() {
                                     },
                                   ]);
                                 }}
+                                onKeyDown={(e) =>
+                                  onActivateKeyDown(e, () => {
+                                    flyToLngLatRef.current(g.centerLon, g.centerLat);
+                                    setLayerStack([
+                                      { kind: "root" },
+                                      {
+                                        kind: "placePhotos",
+                                        categoryId: c.id,
+                                        locationKey: null,
+                                        cityGroupKey: g.cityGroupKey,
+                                      },
+                                    ]);
+                                  })
+                                }
                                 role="button"
                                 tabIndex={0}
                                 title={g.label}
@@ -772,6 +787,8 @@ export default function MapPage() {
                                   className="placeCardImg"
                                   variant="thumb"
                                   fit="cover"
+                                  rootMargin="160px 0px"
+                                  placeholder={false}
                                 />
                                 <div className="placeCardShade" aria-hidden />
                                 <div className="placeCardName">{g.label}</div>

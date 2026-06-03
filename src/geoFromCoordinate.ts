@@ -2,7 +2,6 @@
  * 由 WGS84 经纬度推断行政区（边界框近似，省界相邻处可能有误差）。
  * 用于地图圈选标题：按圈内各点坐标汇总城市 / 省 / 国家简称。
  */
-import { iso1A2Code } from "@ideditor/country-coder";
 
 type Box = { minLat: number; maxLat: number; minLon: number; maxLon: number };
 
@@ -69,51 +68,6 @@ const CITY_BOXES: { box: Box; shortName: string }[] = [
   { box: { minLat: 51.35, maxLat: 51.6, minLon: -0.35, maxLon: 0.15 }, shortName: "伦敦" },
 ];
 
-const ISO2_TO_ZH: Record<string, string> = {
-  CN: "中国",
-  TW: "台湾",
-  FR: "法国",
-  GB: "英国",
-  CH: "瑞士",
-  DE: "德国",
-  IT: "意大利",
-  ES: "西班牙",
-  US: "美国",
-  JP: "日本",
-  KR: "韩国",
-  TH: "泰国",
-  SG: "新加坡",
-  MY: "马来西亚",
-  AU: "澳大利亚",
-  NZ: "新西兰",
-  CA: "加拿大",
-  IN: "印度",
-  VN: "越南",
-  ID: "印度尼西亚",
-  PH: "菲律宾",
-  NL: "荷兰",
-  BE: "比利时",
-  AT: "奥地利",
-  PT: "葡萄牙",
-  SE: "瑞典",
-  NO: "挪威",
-  FI: "芬兰",
-  DK: "丹麦",
-  PL: "波兰",
-  CZ: "捷克",
-  GR: "希腊",
-  TR: "土耳其",
-  EG: "埃及",
-  AE: "阿联酋",
-  SA: "沙特阿拉伯",
-  IL: "以色列",
-  ZA: "南非",
-  BR: "巴西",
-  AR: "阿根廷",
-  MX: "墨西哥",
-  RU: "俄罗斯",
-};
-
 /**
  * 城市级简称：坐标落在已知城市框内则返回该简称，否则 null。
  */
@@ -132,14 +86,4 @@ export function provinceFullFromLatLon(lat: number, lon: number): string | null 
     if (inBox(lat, lon, box)) return fullName;
   }
   return null;
-}
-
-/**
- * 国家简称（ISO + 手工映射）。坐标不在任何国家多边形内时可能为 null。
- */
-export function countryShortFromLatLon(lat: number, lon: number): string | null {
-  const code = iso1A2Code([lon, lat]);
-  if (!code) return null;
-  if (code === "CN" || code === "HK" || code === "MO") return "中国";
-  return ISO2_TO_ZH[code] ?? code;
 }

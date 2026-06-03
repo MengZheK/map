@@ -2,7 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
-import "maplibre-gl/dist/maplibre-gl.css";
 import "./styles.css";
 
 const routerBasename =
@@ -11,9 +10,16 @@ const routerBasename =
 function registerPhotoCacheWorker() {
   if (!("serviceWorker" in navigator)) return;
   const swUrl = new URL("sw.js", window.location.origin + import.meta.env.BASE_URL).href;
-  navigator.serviceWorker.register(swUrl).catch(() => {
-    /* 离线或本地 file:// 时忽略 */
-  });
+  const register = () => {
+    navigator.serviceWorker.register(swUrl).catch(() => {
+      /* 离线或本地 file:// 时忽略 */
+    });
+  };
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(register);
+  } else {
+    window.setTimeout(register, 1500);
+  }
 }
 
 registerPhotoCacheWorker();

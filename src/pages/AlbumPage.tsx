@@ -3,15 +3,17 @@ import { Link } from "react-router-dom";
 import usePhotos from "../usePhotos";
 import type { Photo } from "../photoUtils";
 import { hasGps } from "../photoUtils";
+import { haversineKm } from "../mapGeoCircle";
 import { getRefPointForDistance, useVisitorLocation } from "../VisitorLocation";
 import PhotoDetailModal from "../PhotoDetailModal";
 import BrandMark from "../BrandMark";
 import PhotoWaterfall from "../PhotoWaterfall";
 import ViewModeToggle from "../ViewModeToggle";
+import PageLoader from "../PageLoader";
+import { useAlbumMobile } from "../useAlbumMobile";
 
 const ALBUM_NAV_TABS = [
   { id: "latest", label: "最新" },
-  { id: "featured", label: "精选" },
   { id: "browse", label: "随览" },
   { id: "nearby", label: "附近" },
   { id: "distant", label: "远方" },
@@ -21,18 +23,7 @@ type AlbumNavId = (typeof ALBUM_NAV_TABS)[number]["id"];
 
 const NEAR_KM = 1000;
 const SCROLL_COMPACT_PX = 56;
-
-function haversineKm(a: { lat: number; lon: number }, b: { lat: number; lon: number }): number {
-  const R = 6371;
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLon = ((b.lon - a.lon) * Math.PI) / 180;
-  const lat1 = (a.lat * Math.PI) / 180;
-  const lat2 = (b.lat * Math.PI) / 180;
-  const x =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(x)));
-}
+const MOBILE_HEADER_HIDE_BRAND_PX = 36;
 
 function filterPhotosForNav(
   photos: Photo[],
@@ -41,8 +32,6 @@ function filterPhotosForNav(
 ): Photo[] {
   const list = [...photos];
   switch (nav) {
-    case "featured":
-      return list;
     case "latest":
       return list.sort((a, b) => b.id.localeCompare(a.id, undefined, { numeric: true }));
     case "browse": {
@@ -65,22 +54,10 @@ function filterPhotosForNav(
   }
 }
 
-const MOBILE_HEADER_HIDE_BRAND_PX = 36;
-
 function useAlbumLayout() {
   const [scrolled, setScrolled] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useAlbumMobile();
   const [mobileScrollCompact, setMobileScrollCompact] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 820px)");
-    const onResize = () => {
-      setIsMobile(mq.matches);
-    };
-    onResize();
-    mq.addEventListener("change", onResize);
-    return () => mq.removeEventListener("change", onResize);
-  }, []);
 
   useEffect(() => {
     if (isMobile) {
@@ -158,11 +135,7 @@ export default function AlbumPage() {
   );
 
   if (loading) {
-    return (
-      <div className="page" style={{ display: "grid", placeItems: "center" }}>
-        Loading...
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (error) {
