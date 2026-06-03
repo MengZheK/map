@@ -1,0 +1,327 @@
+/* 展开：左侧全高悬浮栏（固定宽、顶底留边）— 与最早版本一致 */
+/* 折叠：才变为左下角「上下收起」的抽屉，并保留手柄 + 一截内容 */
+.leftPanel {
+  position: absolute;
+  left: 16px;
+  width: var(--panel-w);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition:
+    max-height 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.28s ease,
+    box-shadow 0.28s ease,
+    background 0.25s ease;
+}
+
+.leftPanel:not(.leftPanel--collapsed) {
+  top: 16px;
+  bottom: 16px;
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.1), 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+
+.leftPanel.leftPanel--collapsed {
+  top: auto;
+  bottom: 16px;
+  max-height: var(--panel-collapsed-max-h);
+  border-radius: 18px 18px 14px 14px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12), 0 1px 0 rgba(255, 255, 255, 0.45) inset;
+}
+
+/* 顶部折叠条：参考图中央小 chevron */
+.leftPanelFoldBtn {
+  flex-shrink: 0;
+  width: 100%;
+  border: none;
+  background: rgba(255, 255, 255, 0.35);
+  padding: 8px 10px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  color: #64748b;
+}
+
+.leftPanelFoldBtn:hover {
+  background: rgba(255, 255, 255, 0.55);
+  color: #0f172a;
+}
+
+.leftPanelFoldIcon {
+  display: inline-flex;
+  line-height: 0;
+  transition: transform 0.25s ease;
+}
+
+.leftPanel--collapsed .leftPanelFoldIcon {
+  transform: rotate(180deg);
+}
+
+.leftPanelMain {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.leftPanel--collapsed .leftPanelMain {
+  min-height: 0;
+  flex: 1;
+}
+
+/* 折叠时仍露出一截相册 / 卡片，可滚动浏览（不再压成一条缝） */
+.leftPanel--collapsed .leftPanelBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  pointer-events: auto;
+}
+
+.leftPanel:not(.leftPanel--collapsed) .leftPanelBody {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+  pointer-events: auto;
+}
+
+.leftPanelHeader {
+  flex-shrink: 0;
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.backBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.45);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: #334155;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.backBtn:hover {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(46, 134, 255, 0.28);
+  color: var(--accent);
+}
+
+.backBtn svg {
+  display: block;
+}
+
+.leftPanelTitle {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leftPanelBody {
+  overflow: auto;
+  padding: 12px;
+}
+
+/* 地图侧栏 · 一级：分类标题 + 地点卡片双列（合并原一、二级） */
+.mapNavRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mapNavSection {
+  padding-bottom: 4px;
+}
+
+.mapNavSectionTitle {
+  margin: 0 0 14px;
+  padding: 12px 2px 4px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: 0.02em;
+  font-family: var(--font-sans);
+}
+
+/* 地图侧栏 · 二级目录：地点卡片（双列、底部地名） */
+.placeCardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.placeCard {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  aspect-ratio: 1 / 1;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.placeCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
+}
+
+.placeCard:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.placeCard .lazyPhotoWrap,
+.placeCard .progressiveImage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.placeCard .progressiveImage__main,
+.placeCard .progressiveImage__main.placeCardImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.placeCardImg {
+  object-fit: cover;
+  object-position: center;
+}
+
+.placeCardShade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.15) 42%, transparent 72%);
+  pointer-events: none;
+}
+
+.placeCardName {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 18px 10px 16px;
+  text-align: center;
+  color: #ffffff;
+  font-size: 19px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  letter-spacing: 0.06em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  line-height: 1.35;
+}
+
+/* 地图侧栏相册：密铺方格墙，细白缝、直角（参考常见相册墙） */
+.thumbGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}
+
+.thumbItem {
+  cursor: pointer;
+}
+
+.thumbFrame {
+  position: relative;
+  border-radius: 0;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  background: #ffffff;
+}
+
+.thumbFrame .lazyPhotoWrap,
+.thumbFrame .progressiveImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.thumbFrame .progressiveImage__main,
+.thumbFrame .progressiveImage__main.thumbImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.thumbItem.active .thumbFrame {
+  border-color: var(--accent);
+  border-width: 2px;
+}
+
+.thumbImg,
+.progressiveImage__main.thumbImg,
+.waterfallImg,
+.placeCardImg,
+.modalImage {
+  image-orientation: from-image;
+}
+
+.thumbImg {
+  display: block;
+}
+
+.tileGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.categoryTile {
+  cursor: pointer;
+}
+
+.categoryCard {
+  background: #f9fafb;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #eef2f7;
+}
+
+.categoryCover {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+}
+
+.categoryName {
+  padding: 10px 10px 12px;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: left;
+}

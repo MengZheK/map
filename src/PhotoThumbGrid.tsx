@@ -1,5 +1,6 @@
 import React from "react";
 import type { Photo } from "./photoUtils";
+import { photoAltText } from "./photoUtils";
 import LazyPhoto from "./LazyPhoto";
 import { onActivateKeyDown } from "./keyboardActivate";
 
@@ -28,6 +29,7 @@ export default function PhotoThumbGrid({
             <div className="thumbFrame">
               <LazyPhoto
                 src={p.src}
+                alt={photoAltText(p)}
                 className="thumbImg"
                 variant="thumb"
                 fit="cover"

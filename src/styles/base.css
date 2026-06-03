@@ -1,0 +1,178 @@
+:root {
+  --panel-w: 360px;
+  --accent: #2e86ff;
+  --text: #111827;
+  /* 折叠：保留手柄 + 可选顶栏 + 一截可滚动内容（与二级「露图」尺度接近） */
+  --panel-collapsed-max-h: min(42vh, 400px);
+  /* 全站 UI：现代无衬线 + 中文系统字体栈（PingFang / 微软雅黑 / Noto 等） */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei",
+    "Noto Sans SC", "Source Han Sans SC", sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: #f5f6f8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+}
+
+.page {
+  height: 100vh;
+}
+
+/* 相册 / 地图：仅分段为小磨砂胶囊，无外层轨道 */
+.viewModeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.viewModeToggle__seg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(12px) saturate(1.35);
+  -webkit-backdrop-filter: blur(12px) saturate(1.35);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  white-space: nowrap;
+}
+
+.viewModeToggle__seg:hover:not(.viewModeToggle__seg--active) {
+  color: #334155;
+  background: rgba(255, 255, 255, 0.58);
+  border-color: rgba(255, 255, 255, 0.72);
+}
+
+.viewModeToggle__seg--active {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 3px 10px rgba(15, 23, 42, 0.08);
+}
+
+.viewModeToggle__seg--active svg {
+  color: currentColor;
+  opacity: 0.9;
+}
+
+.viewModeToggle__seg svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: currentColor;
+  opacity: 0.88;
+}
+
+.brandMark,
+.albumBrandMark {
+  flex-shrink: 0;
+  display: block;
+  object-fit: contain;
+}
+
+.brandWordmark,
+.albumBrandWordmark {
+  font-family: "Cormorant Garamond", "Noto Serif SC", Georgia, serif;
+  font-size: clamp(14px, 1.75vw, 17px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  color: #0f172a;
+  white-space: nowrap;
+  font-feature-settings: "liga" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
+}
+
+/* 地图页底部状态提示 */
+.mapNotice {
+  position: absolute;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 10px 12px 10px 16px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.88);
+  color: #f8fafc;
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.25);
+  pointer-events: auto;
+}
+
+.mapNotice__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.mapNotice__close {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mapNotice__close:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

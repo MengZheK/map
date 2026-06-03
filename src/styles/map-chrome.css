@@ -1,0 +1,73 @@
+/* 地图页：右上角（模式切换 + 缩放） */
+.mapTopRightStack {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.mapZoomControls {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.12);
+  border: 1px solid #e5e7eb;
+}
+
+.mapZoomBtn {
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: #ffffff;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.mapZoomBtn:hover {
+  background: #f3f4f6;
+}
+
+.mapZoomBtn:active {
+  background: #e5e7eb;
+}
+
+.mapZoomBtn + .mapZoomBtn {
+  border-top: 1px solid #e5e7eb;
+}
+
+/* 地图：鼠标跟随框选圆（不拦截指针事件） */
+.mapBrushCircle {
+  pointer-events: none;
+  border-radius: 50%;
+  border: 2px solid rgba(46, 134, 255, 0.72);
+  background: rgba(46, 134, 255, 0.12);
+  box-sizing: border-box;
+}
+
+/* 已铆钉选区后：跟随鼠标的预览圆改为灰调，与地图上的蓝色锚定圈区分 */
+.mapBrushCircle--followGray {
+  border-color: rgba(100, 116, 139, 0.55);
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.mapBrushHint {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #6b7280;
+}

@@ -1,0 +1,519 @@
+/* 手机端：双列 flex，避免 CSS columns 加载后留白 */
+.waterfall--split {
+  display: flex;
+  align-items: flex-start;
+  gap: 3.2px;
+  column-count: unset;
+}
+
+.waterfallCol {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3.2px;
+}
+
+.waterfall--split .waterfallItem {
+  margin-bottom: 0;
+  display: block;
+}
+
+.albumPage--mobile .waterfallItem .lazyPhotoWrap {
+  min-height: 0;
+}
+
+.waterfallItem {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  break-inside: avoid;
+  margin-bottom: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f3f4f6;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  transition:
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.32s ease;
+  will-change: transform;
+}
+
+@media (hover: hover) {
+  .waterfallItem:hover {
+    transform: translateY(-6px) scale(1.022);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.11);
+    z-index: 2;
+  }
+}
+
+/* —— 渐进式图片加载（占位 / 模糊预览 / 渐显） —— */
+.lazyPhotoWrap {
+  display: block;
+  width: 100%;
+  position: relative;
+}
+
+.waterfallItem .lazyPhotoWrap {
+  min-height: 148px;
+}
+
+.progressiveImage {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  background: #e8ebf0;
+}
+
+.progressiveImage--cover {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+
+.progressiveImage__stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 1;
+  transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.progressiveImage--ready .progressiveImage__stage {
+  opacity: 0;
+}
+
+.progressiveImage__blur {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.1);
+  filter: blur(20px) saturate(1.05);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.progressiveImage__blur--on {
+  opacity: 1;
+}
+
+.progressiveImage__shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 35%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0) 65%
+  );
+  background-size: 220% 100%;
+  animation: progressiveShimmer 1.4s ease-in-out infinite;
+}
+
+.progressiveImage--ready .progressiveImage__shimmer,
+.progressiveImage--ready .progressiveImage__pulse {
+  animation: none;
+  opacity: 0;
+}
+
+.progressiveImage__pulse {
+  position: absolute;
+  inset: 0;
+  background: rgba(232, 235, 240, 0.5);
+  animation: progressivePulse 2s ease-in-out infinite;
+}
+
+.progressiveImage__main {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: block;
+  height: auto;
+  opacity: 0;
+  transform: scale(1.012);
+  filter: blur(8px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform, filter;
+}
+
+.progressiveImage--cover .progressiveImage__main {
+  height: 100%;
+  object-fit: cover;
+}
+
+.progressiveImage__main--visible {
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0);
+}
+
+.progressiveImage__loader {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(15, 23, 42, 0.1);
+  border-top-color: rgba(0, 122, 255, 0.85);
+  border-radius: 50%;
+  animation: progressiveSpin 0.8s linear infinite;
+  opacity: 1;
+  transition: opacity 0.35s ease;
+}
+
+.progressiveImage--ready .progressiveImage__loader {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.progressiveImage__error {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(60, 60, 67, 0.55);
+  background: #eceef2;
+}
+
+.progressiveImage__errorIcon {
+  font-size: 22px;
+  opacity: 0.45;
+}
+
+@keyframes progressiveShimmer {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+@keyframes progressivePulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
+@keyframes progressiveSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.progressiveImage--deferred .progressiveImage__shimmer {
+  animation: none;
+  opacity: 0.35;
+}
+
+.progressiveImage--deferred .progressiveImage__pulse {
+  animation: none;
+}
+
+/* 相册：占位渐出、主图渐入更慢 */
+.progressiveImage--relaxed .progressiveImage__stage {
+  transition:
+    opacity 1.05s cubic-bezier(0.25, 0.1, 0.25, 1),
+    visibility 0s linear 1.05s;
+}
+
+.progressiveImage--relaxed.progressiveImage--ready .progressiveImage__stage {
+  transition-delay: var(--progressive-reveal-delay, 0ms);
+}
+
+.progressiveImage--relaxed .progressiveImage__blur {
+  transition: opacity 0.75s ease;
+}
+
+.progressiveImage--relaxed .progressiveImage__shimmer {
+  animation-duration: 2.4s;
+}
+
+.progressiveImage--relaxed .progressiveImage__pulse {
+  animation-duration: 2.6s;
+}
+
+.progressiveImage--relaxed .progressiveImage__main {
+  opacity: 0;
+  transform: scale(1.018);
+  filter: blur(10px);
+  transition:
+    opacity 1.15s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 1.15s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 1.15s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--progressive-reveal-delay, 0ms);
+}
+
+.progressiveImage--relaxed .progressiveImage__main--visible {
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0);
+}
+
+.progressiveImage--relaxed .progressiveImage__loader {
+  transition: opacity 0.5s ease;
+}
+
+/* 浏览器/本地已缓存：跳过占位与渐入动画 */
+.progressiveImage--instant .progressiveImage__stage,
+.progressiveImage--instant.progressiveImage--ready .progressiveImage__stage {
+  opacity: 0;
+  transition: none;
+}
+
+.progressiveImage--instant .progressiveImage__main {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition: none;
+}
+
+.progressiveImage--instant .progressiveImage__loader {
+  display: none;
+}
+
+.modalImageInner .progressiveImage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  background: transparent;
+}
+
+.modalImageInner .progressiveImage__stage {
+  background: rgba(12, 14, 20, 0.35);
+}
+
+.modalImageInner .progressiveImage__main.modalImage {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressiveImage__main,
+  .progressiveImage__stage,
+  .progressiveImage__blur,
+  .progressiveImage--relaxed .progressiveImage__main {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    animation: none !important;
+  }
+
+  .progressiveImage__main,
+  .progressiveImage--relaxed .progressiveImage__main {
+    filter: none;
+  }
+
+  .progressiveImage__main--visible,
+  .progressiveImage--relaxed .progressiveImage__main--visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.lazyPhotoWrap .waterfallImg,
+.lazyPhotoWrap .thumbImg {
+  width: 100%;
+  display: block;
+  height: auto;
+}
+
+.waterfallImg {
+  width: 100%;
+  display: block;
+  height: auto;
+}
+
+.waterfallItem.active {
+  outline: 3px solid var(--accent);
+}
+
+.waterfallWrap {
+  padding: 16px;
+}
+
+.modalImageWrap {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.modalImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: transparent;
+}
+
+.paramPanel {
+  position: absolute;
+  left: 18px;
+  top: 56px;
+  width: 440px;
+  max-width: calc(100% - 36px);
+  /* 网页端：限制在视口内，正文区域滚动，避免长描述 / 多字段时底部被裁切 */
+  max-height: calc(100dvh - 56px - 18px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+  z-index: 7;
+}
+
+.paramPanelHeader {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.paramTabs {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
+}
+
+.paramPanelCloseBtn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(0, 0, 0, 0.06);
+  color: #374151;
+  font-size: 16px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s ease;
+}
+
+.paramPanelCloseBtn:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.paramTabBtn {
+  border: none;
+  background: transparent;
+  font-weight: 700;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.paramTabBtn.active {
+  color: #111827;
+  background: rgba(46, 134, 255, 0.12);
+}
+
+.closeBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.paramPanelBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.paramPanelBody::-webkit-scrollbar {
+  display: none;
+}
+
+.paramBasicBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.paramGridBasic {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+/* 基本参数 · 描述：整行占满（等同两格宽度） */
+.paramCard--span2 {
+  width: 100%;
+}
+
+/* 基本参数网格内：整行占两列（镜头等） */
+.paramGridBasic > .paramCard--span2 {
+  grid-column: 1 / -1;
+}
+
+/* 基本参数 · 拍摄时间：整行两格宽，高度约为普通卡片一半 */
+.paramCard--timeHalf {
+  padding-top: 6px;
+  padding-bottom: 8px;
+}
+
+.paramCard--timeHalf .paramLabel {
+  margin-bottom: 4px;
+}
+
+.paramTimeRelative {
+  font-size: 17px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1.25;
+}
+
+.paramTimeAbsolute {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  line-height: 1.35;
+}
+
+.paramValue--description {

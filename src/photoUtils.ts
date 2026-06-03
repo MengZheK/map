@@ -152,6 +152,15 @@ export function formatShortPlaceName(p: Photo): string {
   return raw.replace(/市$/, "") || raw;
 }
 
+/** 列表缩略图 alt：地点名优先，其次描述摘要 */
+export function photoAltText(p: Photo): string {
+  const place = formatShortPlaceName(p);
+  if (place !== "未标注") return place;
+  const desc = (p.description ?? "").trim();
+  if (desc) return desc.length > 80 ? `${desc.slice(0, 80)}…` : desc;
+  return `照片 ${p.id}`;
+}
+
 /** 省级全称 → 简称（深圳/云南/中国 等展示用） */
 export function shortAdminRegionName(province: string): string {
   if (!province.trim()) return "其他";

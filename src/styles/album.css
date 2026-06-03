@@ -1,0 +1,359 @@
+/* 相册页：整体浅灰底 + 顶栏双态（展开 / 滚动紧凑）+ 手机顶栏与底部 Dock */
+.albumPage {
+  min-height: 100vh;
+  background: #f3f4f6;
+  --album-header-offset: 134px;
+  --album-content-pad-bottom: 40px;
+}
+
+.albumPage--scrolled:not(.albumPage--mobile) {
+  --album-header-offset: 68px;
+}
+
+.albumPage--mobile {
+  /* 顶栏竖向收紧为约 2/3，与下方 padding 联动 */
+  --album-header-offset: calc(148px * 2 / 3);
+  --album-content-pad-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+}
+
+.albumPage--mobile.albumPage--mobileCompact {
+  --album-header-offset: calc(64px * 2 / 3);
+}
+
+.albumLayoutInner {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(20px, 5vw, 56px);
+  padding-right: clamp(20px, 5vw, 56px);
+  box-sizing: border-box;
+}
+
+.albumTopBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(1.45);
+  -webkit-backdrop-filter: blur(20px) saturate(1.45);
+  border-bottom: none;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.78) inset,
+    0 12px 40px rgba(15, 23, 42, 0.05);
+  transition: box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.albumPage--scrolled:not(.albumPage--mobile) .albumTopBar {
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.65) inset,
+    0 10px 36px rgba(15, 23, 42, 0.07);
+}
+
+.albumHeaderTier--brand {
+  border-bottom: none;
+}
+
+.albumHeaderTierInner--brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 30px;
+  padding-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.albumHeaderTierInner--nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  padding-top: 2px;
+  padding-bottom: 14px;
+  flex-wrap: wrap;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.albumPage--scrolled:not(.albumPage--mobile) .albumHeaderTierInner--nav {
+  justify-content: space-between;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  align-items: center;
+}
+
+.albumBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #0f172a;
+  transition: opacity 0.2s ease;
+}
+
+.albumBrand:hover {
+  opacity: 0.88;
+}
+
+.albumBrand:hover .albumBrandWordmark {
+  color: #020617;
+}
+
+.albumBrand--mobile {
+  justify-content: center;
+}
+
+.brandMark,
+.albumBrandMark {
+  flex-shrink: 0;
+  display: block;
+  object-fit: contain;
+}
+
+.albumBrandMark {
+  border-radius: 6px;
+}
+
+.albumBrandWordmark,
+.brandWordmark {
+  font-family: "Cormorant Garamond", "Noto Serif SC", Georgia, serif;
+  font-size: clamp(14px, 1.75vw, 17px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  color: #0f172a;
+  white-space: nowrap;
+  font-feature-settings: "liga" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
+}
+
+.albumHeaderBrandRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px 20px;
+  flex-wrap: wrap;
+}
+
+.albumContactLink {
+  position: relative;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #475569;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 4px 0;
+  transition: color 0.22s ease;
+}
+
+.albumContactLink::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, var(--accent), rgba(46, 134, 255, 0.15));
+  opacity: 0;
+  transform: scaleX(0.35);
+  transform-origin: left center;
+  transition:
+    opacity 0.22s ease,
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.albumContactLink:hover {
+  color: #0f172a;
+}
+
+.albumContactLink:hover::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.albumHeaderNavRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* 手机顶栏：居中品牌 + 横向滚动分类（无层间分割线） */
+.albumTopBar--mobile {
+  border-bottom: none;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 10px 36px rgba(15, 23, 42, 0.06);
+}
+
+.albumMobileHeaderInner {
+  padding-top: 14px;
+  padding-bottom: 10px;
+}
+
+.albumMobileBrandBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 4px;
+  padding-bottom: 12px;
+}
+
+.albumMobileTabsWrap {
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: none;
+}
+
+.albumMobileTabsWrap--tabsOnly {
+  margin-top: 0;
+  padding-top: 12px;
+}
+
+.albumMobileTabsWrap .albumNavTabs {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  gap: 14px 18px;
+  padding-bottom: 4px;
+}
+
+/* 手机端：顶栏高度约为原来的 2/3（竖向留白同比缩小），分类按钮仍 flex 上下居中 */
+.albumPage--mobile .albumMobileHeaderInner {
+  padding-top: calc(14px * 2 / 3);
+  padding-bottom: calc(10px * 2 / 3);
+}
+
+.albumPage--mobile .albumMobileBrandBlock {
+  padding-top: calc(4px * 2 / 3);
+  padding-bottom: calc(12px * 2 / 3);
+}
+
+.albumPage--mobile .albumMobileTabsWrap {
+  margin-top: calc(4px * 2 / 3);
+  padding-top: calc(14px * 2 / 3);
+}
+
+.albumPage--mobile .albumMobileTabsWrap--tabsOnly {
+  padding-top: calc(12px * 2 / 3);
+}
+
+.albumPage--mobile .albumMobileTabsWrap .albumNavTabs {
+  gap: calc(14px * 2 / 3) calc(18px * 2 / 3);
+  padding-bottom: calc(4px * 2 / 3);
+  align-items: center;
+}
+
+.albumPage--mobile .albumNavTab {
+  padding: calc(7px * 2 / 3) 10px;
+}
+
+/* 电脑端相册瀑布流：上下左右间距均为 4px */
+.albumPage:not(.albumPage--mobile) .waterfall {
+  column-gap: 4px;
+}
+
+.albumPage:not(.albumPage--mobile) .waterfallItem {
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* 手机端相册瀑布流：横向与纵向间距 3.2px，圆角见 .waterfallItem 覆盖 */
+.albumPage--mobile .waterfall {
+  column-gap: 3.2px;
+}
+
+.albumPage--mobile .waterfallItem {
+  margin-bottom: 3.2px;
+}
+
+.albumMobileTabsWrap .albumNavTabs::-webkit-scrollbar {
+  display: none;
+}
+
+.albumMobileDock {
+  position: fixed;
+  left: 50%;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 8px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.52);
+  backdrop-filter: blur(22px) saturate(1.4);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 10px 36px rgba(15, 23, 42, 0.14), 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+.albumMobileDock .viewModeToggle {
+  gap: 6px;
+}
+
+.albumMobileDockContact {
+  padding-right: 4px;
+}
+
+.albumNavTabs {
+  display: flex;
+  align-items: center;
+  gap: 8px 20px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.albumNavTab {
+  border: none;
+  background: none;
+  padding: 7px 10px;
+  margin: 0 -6px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #94a3b8;
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: 8px;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    font-weight 0.15s ease;
+}
+
+.albumNavTab:hover:not(.albumNavTab--active) {
+  color: #475569;
+  background: rgba(15, 23, 42, 0.045);
+}
+
+.albumNavTab--active {
+  color: #0f172a;
+  font-weight: 700;
+  background: transparent;
+}
+
+.albumContentWrap {
+  padding-top: var(--album-header-offset);
+  padding-bottom: var(--album-content-pad-bottom);
+  transition: padding-top 0.2s ease;
+}
+
+.albumMainInner {
+  padding-top: clamp(16px, 2.5vw, 24px);
+  padding-bottom: 8px;
+}
+
+.albumMainInner .waterfallWrap {
+  padding: 0;
+}

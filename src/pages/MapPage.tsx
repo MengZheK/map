@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import "../styles/map-chrome.css";
+import "../styles/map-panel.css";
+import "../styles/gallery.css";
 import usePhotos from "../usePhotos";
 import useCategories from "../useCategories";
 import { categoryTitleForId } from "../categoryLabels";
@@ -20,11 +23,13 @@ import {
   makeLocationKey,
   markerColorIdxForPhotos,
   MAP_MARKER_COLORS,
+  photoAltText,
 } from "../photoUtils";
 import { mapSelectionAreaTitle } from "../mapSelectionAreaTitle";
 import PhotoThumbGrid from "../PhotoThumbGrid";
 import PhotoDetailModal from "../PhotoDetailModal";
 import LazyPhoto from "../LazyPhoto";
+import MapNotice from "../MapNotice";
 import PageLoader from "../PageLoader";
 import ViewModeToggle from "../ViewModeToggle";
 import { onActivateKeyDown } from "../keyboardActivate";
@@ -119,6 +124,8 @@ export default function MapPage() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapNotice, setMapNotice] = useState<string | null>(null);
+  const dismissMapNotice = useCallback(() => setMapNotice(null), []);
 
   const flyToLngLatRef = useRef<(lng: number, lat: number) => void>(() => {});
   flyToLngLatRef.current = (lng: number, lat: number) => {
@@ -309,6 +316,7 @@ export default function MapPage() {
 
     map.on("error", (e) => {
       console.error("[maplibre]", e.error);
+      setMapNotice("地图瓦片加载失败，请检查网络或稍后重试");
     });
 
     map.on("load", () => {
@@ -456,6 +464,15 @@ export default function MapPage() {
       return;
     }
     if (visitorLoc.status !== "loading" && visitorLoc.status !== "idle") {
+      if (pendingLocateFlyRef.current) {
+        if (visitorLoc.status === "denied") {
+          setMapNotice("定位权限被拒绝，请在浏览器设置中允许定位");
+        } else if (visitorLoc.status === "unavailable") {
+          setMapNotice("当前设备不支持定位");
+        } else if (visitorLoc.status === "error") {
+          setMapNotice("定位失败，请稍后重试");
+        }
+      }
       pendingLocateFlyRef.current = false;
     }
   }, [visitorLoc, mapLoaded]);
@@ -638,6 +655,8 @@ export default function MapPage() {
         />
       </div>
 
+      <MapNotice message={mapNotice} onDismiss={dismissMapNotice} />
+
       {/* 右上角：模式切换 + 缩放 */}
       <div className="mapTopRightStack">
         <ViewModeToggle />
@@ -784,6 +803,7 @@ export default function MapPage() {
                               >
                                 <LazyPhoto
                                   src={g.cover.src}
+                                  alt={photoAltText(g.cover)}
                                   className="placeCardImg"
                                   variant="thumb"
                                   fit="cover"

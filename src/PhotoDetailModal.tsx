@@ -5,6 +5,7 @@ import ModalPinchZoom from "./ModalPinchZoom";
 import ProgressiveImage from "./ProgressiveImage";
 import useCategories from "./useCategories";
 import { categoryTitleForId } from "./categoryLabels";
+import { useDialogFocus } from "./useDialogFocus";
 import {
   cameraDisplay,
   decToDms,
@@ -15,7 +16,10 @@ import {
   formatTakenDateChinese,
   formatTakenRelativeChinese,
   parsePhotoTakenDate,
+  photoAltText,
 } from "./photoUtils";
+import "./styles/modal.css";
+import "./styles/gallery.css";
 
 function dmsLat(p: Photo): string {
   if (typeof p.lat !== "number") return "-";
@@ -51,6 +55,10 @@ export default function PhotoDetailModal({
   const paramPanelBodyRef = useRef<HTMLDivElement>(null);
   const basicScrollTargetRef = useRef<HTMLDivElement>(null);
   const geoScrollTargetRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const exitBtnRef = useRef<HTMLButtonElement>(null);
+
+  useDialogFocus(true, overlayRef, exitBtnRef);
 
   const index = useMemo(() => photos.findIndex((p) => p.id === activePhotoId), [photos, activePhotoId]);
   const hasPrev = index > 0;
@@ -190,17 +198,30 @@ export default function PhotoDetailModal({
 
   if (!photo) return null;
 
+  const imageAlt = photoAltText(photo);
+
   return (
     <div
+      ref={overlayRef}
       className="modalOverlay"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="photo-detail-title"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
+      <h1 id="photo-detail-title" className="sr-only">
+        {imageAlt}
+      </h1>
       <div className="modalStage" onMouseDown={(e) => e.stopPropagation()}>
-        <button type="button" className="modalExitBtn" onClick={onClose} aria-label="退出大图">
+        <button
+          ref={exitBtnRef}
+          type="button"
+          className="modalExitBtn"
+          onClick={onClose}
+          aria-label="退出大图"
+        >
           ✕
         </button>
 
@@ -250,6 +271,7 @@ export default function PhotoDetailModal({
                 >
                   <ProgressiveImage
                     src={photo.src}
+                    alt={imageAlt}
                     variant="full"
                     className="modalImage"
                     loadEnabled
@@ -272,6 +294,7 @@ export default function PhotoDetailModal({
               >
                 <ProgressiveImage
                   src={photo.src}
+                  alt={imageAlt}
                   variant="full"
                   className="modalImage"
                   loadEnabled

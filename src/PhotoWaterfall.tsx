@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import type { Photo } from "./photoUtils";
+import { photoAltText } from "./photoUtils";
 import LazyPhoto from "./LazyPhoto";
 import { onActivateKeyDown } from "./keyboardActivate";
 import { useAlbumMobile } from "./useAlbumMobile";
@@ -23,6 +24,7 @@ function WaterfallItem({
     >
       <LazyPhoto
         src={photo.src}
+        alt={photoAltText(photo)}
         className="waterfallImg"
         variant="grid"
         reveal="relaxed"
