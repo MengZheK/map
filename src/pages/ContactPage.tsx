@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import BrandMark from "../BrandMark";
 import ContactCollectionStats from "../ContactCollectionStats";
+import ContactVisitStats from "../ContactVisitStats";
 import usePhotos from "../usePhotos";
 import { isSubscribeConfigured, submitPhotoSubscribe } from "../subscribe";
 
@@ -129,6 +130,8 @@ export default function ContactPage() {
             <span className="contactMailBtnAddr">{AUTHOR_EMAIL}</span>
           </a>
         </section>
+
+        <ContactVisitStats />
 
         <p className="contactPageFoot">
           Hayato Photography · 用地图与相册记录路上的光

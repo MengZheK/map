@@ -5,6 +5,7 @@ import { PhotosProvider } from "./PhotosProvider";
 import PageLoader from "./PageLoader";
 import AlbumPage from "./pages/AlbumPage";
 import { prefetchMapPageWhenIdle, scheduleMapPagePrefetch } from "./prefetchMapPage";
+import { recordSiteVisit } from "./visitStats";
 
 const MapPage = lazy(() => import(/* @vitePrefetch */ "./pages/MapPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
@@ -19,6 +20,7 @@ export default function App() {
   React.useEffect(() => {
     scheduleMapPagePrefetch();
     prefetchMapPageWhenIdle();
+    void recordSiteVisit();
   }, []);
 
   return (
